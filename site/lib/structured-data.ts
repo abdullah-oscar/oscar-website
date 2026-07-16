@@ -12,7 +12,7 @@ export function organizationLd() {
     name: site.name,
     legalName: site.legalName,
     url: site.url,
-    logo: `${site.url}/icon.svg`,
+    logo: `${site.url}/logos/oscar-main-logo.png`,
     description: site.description,
     foundingDate: site.founded,
     sameAs: [site.links.linkedin],

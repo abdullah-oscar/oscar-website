@@ -1,27 +1,46 @@
 import { trustedBrands } from "@/lib/site";
+import { customerLogos } from "@/lib/assets";
 
 export function TrustedBy() {
-  // Duplicate the list so the marquee can loop seamlessly.
-  const row = [...trustedBrands, ...trustedBrands];
+  const logos = customerLogos();
+  const hasLogos = logos.length > 0;
+
+  // Duplicate the row so the marquee loops seamlessly.
+  const items = hasLogos
+    ? [...logos, ...logos]
+    : [...trustedBrands, ...trustedBrands].map((b) => ({ src: "", name: b }));
 
   return (
     <section
       aria-label="Trusted by leading operators"
-      className="border-y border-line bg-mist py-10"
+      className="border-y border-line bg-white py-10"
     >
-      <p className="kicker mb-7 text-center text-muted">
+      <p className="kicker mb-8 text-center text-muted">
         Trusted by operators running thousands of locations
       </p>
       <div className="relative overflow-hidden mask-fade-x pause-hover">
-        <div className="flex w-max animate-marquee items-center gap-14">
-          {row.map((brand, i) => (
-            <span
-              key={`${brand}-${i}`}
-              className="select-none whitespace-nowrap text-xl font-extrabold tracking-tight text-navy/30 transition-colors hover:text-navy/70"
-            >
-              {brand}
-            </span>
-          ))}
+        <div className="flex w-max animate-marquee items-center gap-16">
+          {items.map((item, i) =>
+            item.src ? (
+              // eslint-disable-next-line @next/next/no-img-element -- logo
+              // dimensions vary and are unknown at build time; CSS sizes them.
+              <img
+                key={`${item.src}-${i}`}
+                src={item.src}
+                alt={item.name}
+                loading="lazy"
+                decoding="async"
+                className="h-9 w-auto max-w-[140px] shrink-0 object-contain opacity-60 grayscale transition duration-300 hover:opacity-100 hover:grayscale-0"
+              />
+            ) : (
+              <span
+                key={`${item.name}-${i}`}
+                className="shrink-0 select-none whitespace-nowrap text-xl font-extrabold tracking-tight text-navy/30"
+              >
+                {item.name}
+              </span>
+            )
+          )}
         </div>
       </div>
     </section>

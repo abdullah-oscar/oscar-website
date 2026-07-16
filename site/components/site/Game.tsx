@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { Container } from "@/components/ui/primitives";
 import { Reveal } from "@/components/ui/Reveal";
-import { Icon } from "@/components/ui/icons";
 import { site } from "@/lib/site";
 
 type Tone = "crit" | "warn" | "info" | "ok";
@@ -206,9 +206,14 @@ export function Game() {
                 <div className="grid place-items-center rounded-xl border border-line bg-mist px-6 py-12 text-center">
                   {view === "idle" ? (
                     <>
-                      <span className="grid size-14 place-items-center rounded-xl bg-brand-50 text-brand-600">
-                        <Icon name="radar" width={28} height={28} />
-                      </span>
+                      <Image
+                        src="/logos/oscar-mascot.avif"
+                        alt=""
+                        width={96}
+                        height={96}
+                        aria-hidden
+                        className="h-24 w-24 object-contain"
+                      />
                       <div className="mt-4 text-xl font-extrabold text-navy">
                         34 locations need you
                       </div>

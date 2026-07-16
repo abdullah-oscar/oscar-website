@@ -1,8 +1,8 @@
 import { Nav } from "@/components/site/Nav";
 import { Hero } from "@/components/site/Hero";
 import { TrustedBy } from "@/components/site/TrustedBy";
+import { CommandCenter } from "@/components/site/CommandCenter";
 import { Features } from "@/components/site/Features";
-import { Watchtower } from "@/components/site/Watchtower";
 import { HowItWorks } from "@/components/site/HowItWorks";
 import { WhyOscar } from "@/components/site/WhyOscar";
 import { Metrics } from "@/components/site/Metrics";
@@ -20,8 +20,8 @@ export default function Home() {
       <main id="main">
         <Hero />
         <TrustedBy />
+        <CommandCenter />
         <Features />
-        <Watchtower />
         <HowItWorks />
         <WhyOscar />
         <Metrics />

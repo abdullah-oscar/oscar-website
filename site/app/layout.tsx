@@ -66,10 +66,7 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  icons: {
-    icon: { url: "/icon.svg", type: "image/svg+xml" },
-    apple: { url: "/icon.svg", type: "image/svg+xml" },
-  },
+  // Favicon comes from app/icon.png (the mascot) via Next's file convention.
 };
 
 export const viewport: Viewport = {
