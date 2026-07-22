@@ -37,12 +37,6 @@ export const nav = [
 ] as const;
 
 /** Hero headline trust stats. */
-export const heroStats = [
-  { value: "95%", label: "Less manual reporting" },
-  { value: "1,000s", label: "Workflows automated" },
-  { value: "Days", label: "To go live, not months" },
-] as const;
-
 /** Brands shown in the trust marquee (rendered as styled wordmarks). */
 export const trustedBrands = [
   "Dunkin'",

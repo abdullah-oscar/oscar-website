@@ -14,7 +14,7 @@ type Alert = { text: string; tone: Tone; options: Option[] };
 const ALERTS: Alert[] = [
   { text: "Location #14 — 3 unusual voids in 90 minutes", tone: "crit", options: [{ label: "Flag for review", correct: true }, { label: "Ignore it", correct: false }, { label: "Approve all", correct: false }] },
   { text: "Location #07 — Labor 18% over target right now", tone: "warn", options: [{ label: "Cut next shift early", correct: true }, { label: "Hire more staff", correct: false }, { label: "Do nothing", correct: false }] },
-  { text: "Location #22 — Breakfast item not selling", tone: "info", options: [{ label: "Check prep & equipment", correct: true }, { label: "Run a promo", correct: false }, { label: "Remove from menu", correct: false }] },
+  { text: "Location #22 — Breakfast item 86'd 3 mornings straight", tone: "info", options: [{ label: "Check prep & equipment", correct: true }, { label: "Run a promo", correct: false }, { label: "Remove from menu", correct: false }] },
   { text: "Location #03 — 2 employees missed meal breaks", tone: "crit", options: [{ label: "Log & notify manager", correct: true }, { label: "Ignore, it happens", correct: false }, { label: "Write up staff", correct: false }] },
   { text: "Location #19 — Sales down 22% vs last Tuesday", tone: "warn", options: [{ label: "Investigate root cause", correct: true }, { label: "Assume weather", correct: false }, { label: "Lower prices", correct: false }] },
   { text: "Location #11 — 4 negative reviews in 2 hours", tone: "warn", options: [{ label: "Alert GM immediately", correct: true }, { label: "Reply next week", correct: false }, { label: "Flag later", correct: false }] },
@@ -89,8 +89,19 @@ export function Game() {
     runningRef.current = true;
     idRef.current = 0;
     sync();
-    setCards([]);
     setView("playing");
+
+    // Front-load a couple of distinct alerts so the arena isn't empty while
+    // the first scheduled spawn is still ticking down.
+    const pool = [...ALERTS];
+    const initial: Card[] = [];
+    for (let i = 0; i < 2 && pool.length > 0; i++) {
+      const idx = Math.floor(Math.random() * pool.length);
+      const alert = pool.splice(idx, 1)[0];
+      const limit = Math.max(4200, 8500 - levelRef.current * 500);
+      initial.push({ id: ++idRef.current, alert, timeLeft: limit, total: limit });
+    }
+    setCards(initial);
 
     tickRef.current = setInterval(() => {
       setCards((prev) => {

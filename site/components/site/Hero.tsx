@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { OscarMascot } from "./OscarMascot";
 import { Icon } from "@/components/ui/icons";
 import { Reveal } from "@/components/ui/Reveal";
-import { heroStats, site } from "@/lib/site";
+import { site } from "@/lib/site";
 
 /** Alerts that drift around Oscar — the things he's catching while you read. */
 const chips = [
@@ -82,22 +82,6 @@ export function Hero() {
                 <Icon name="arrow" width={16} height={16} />
               </a>
             </div>
-          </Reveal>
-
-          <Reveal delay={4}>
-            <dl className="mt-11 flex flex-wrap gap-x-10 gap-y-6 border-t border-line pt-7">
-              {heroStats.map((s) => (
-                <div key={s.label}>
-                  <dt className="sr-only">{s.label}</dt>
-                  <dd className="text-2xl font-extrabold tracking-tight text-navy">
-                    {s.value}
-                  </dd>
-                  <dd className="mt-1 max-w-[10rem] text-xs leading-snug text-muted">
-                    {s.label}
-                  </dd>
-                </div>
-              ))}
-            </dl>
           </Reveal>
         </div>
 
