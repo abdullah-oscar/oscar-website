@@ -50,7 +50,7 @@ export function Footer() {
 
           {/* Explore */}
           <nav aria-label="Footer">
-            <h3 className="text-[11px] font-bold uppercase tracking-wider !text-white/45">
+            <h3 className="font-sans text-[11px] font-bold uppercase tracking-wider !text-white/45">
               Explore
             </h3>
             <ul className="mt-4 flex flex-col gap-2.5">
@@ -69,7 +69,7 @@ export function Footer() {
 
           {/* Company */}
           <div>
-            <h3 className="text-[11px] font-bold uppercase tracking-wider !text-white/45">
+            <h3 className="font-sans text-[11px] font-bold uppercase tracking-wider !text-white/45">
               Company
             </h3>
             <ul className="mt-4 flex flex-col gap-2.5">

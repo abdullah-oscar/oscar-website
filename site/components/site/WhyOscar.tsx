@@ -14,7 +14,7 @@ export function WhyOscar() {
           <span className="kicker text-brand-400">Why Oscar</span>
         </Reveal>
         <Reveal delay={1}>
-          <h2 className="mt-4 max-w-3xl text-balance text-3xl font-extrabold leading-[1.12] tracking-tight !text-white sm:text-4xl md:text-[2.6rem]">
+          <h2 className="mt-4 max-w-3xl text-balance text-4xl font-extrabold leading-[1.08] tracking-tight !text-white sm:text-5xl md:text-[3.4rem]">
             You already have the data. Oscar makes it{" "}
             <span className="text-brand-400">actionable.</span>
           </h2>

@@ -1,4 +1,4 @@
-import { LiveDashboard } from "./LiveDashboard";
+import { ProductShowcase } from "./ProductShowcase";
 import { Reveal } from "@/components/ui/Reveal";
 import { Container } from "@/components/ui/primitives";
 import { Icon } from "@/components/ui/icons";
@@ -7,8 +7,8 @@ import { Icon } from "@/components/ui/icons";
  * "What Oscar sees" — the product moment.
  *
  * NOTE: this is the natural home for real product screenshots. When they land
- * in /public/product, swap <LiveDashboard /> for the real thing (or keep the
- * live mock beside a screenshot). Real always beats invented.
+ * in /public/product, swap <ProductShowcase /> for the real thing (or keep the
+ * live mocks beside a screenshot). Real always beats invented.
  */
 export function CommandCenter() {
   return (
@@ -20,7 +20,7 @@ export function CommandCenter() {
               <span className="kicker text-brand-600">What Oscar sees</span>
             </Reveal>
             <Reveal delay={1}>
-              <h2 className="mt-4 text-balance text-3xl font-extrabold leading-[1.12] tracking-tight sm:text-4xl md:text-[2.5rem]">
+              <h2 className="mt-4 text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl md:text-[3.3rem]">
                 Every location. Every shift.{" "}
                 <span className="text-brand-600">All at once.</span>
               </h2>
@@ -52,7 +52,7 @@ export function CommandCenter() {
           </div>
 
           <Reveal delay={2}>
-            <LiveDashboard />
+            <ProductShowcase />
           </Reveal>
         </div>
       </Container>

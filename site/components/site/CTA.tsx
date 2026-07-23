@@ -14,7 +14,7 @@ export function CTA() {
               <span className="kicker text-brand-600">Get started today</span>
             </Reveal>
             <Reveal delay={1}>
-              <h2 className="mt-4 text-balance text-4xl font-extrabold leading-[1.08] tracking-[-0.035em] sm:text-5xl">
+              <h2 className="mt-4 text-balance text-5xl font-extrabold leading-[1.02] tracking-[-0.01em] sm:text-6xl">
                 Command your business, effortlessly.
               </h2>
             </Reveal>

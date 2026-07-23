@@ -48,7 +48,7 @@ export function Hero() {
           {/* No text-balance here: it fights the explicit <br>s and produces
               ragged lines. The breaks are authored deliberately. */}
           <Reveal delay={1}>
-            <h1 className="mt-6 text-[2.6rem] font-extrabold leading-[1.04] tracking-[-0.04em] sm:text-[3.2rem] lg:text-[3.6rem]">
+            <h1 className="mt-6 text-[3rem] font-extrabold leading-[1.0] tracking-[-0.01em] sm:text-[3.8rem] lg:text-[4.6rem]">
               Ostriches don&rsquo;t
               <br />
               bury their heads.

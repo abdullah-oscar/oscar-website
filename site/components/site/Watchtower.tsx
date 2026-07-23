@@ -136,7 +136,7 @@ export function Watchtower() {
             <span className="kicker text-brand-600">The Watchtower</span>
           </Reveal>
           <Reveal delay={1}>
-            <h2 className="mt-4 text-balance text-3xl font-extrabold leading-[1.12] tracking-tight sm:text-4xl md:text-[2.6rem]">
+            <h2 className="mt-4 text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl md:text-[3.4rem]">
               One analyst watching{" "}
               <span className="text-brand-600">every location</span>, every
               second

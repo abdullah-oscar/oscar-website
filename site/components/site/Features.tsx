@@ -32,7 +32,7 @@ export function Features() {
             <Reveal key={f.title} delay={i % 3}>
               <article className="card-lift group flex h-full flex-col rounded-xl border border-line bg-white p-6">
                 <div className="flex items-center justify-between">
-                  <span className="grid size-11 place-items-center rounded-lg bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-500 group-hover:text-white">
+                  <span className="grid size-11 place-items-center rounded-lg bg-navy text-white transition-colors group-hover:bg-brand-500">
                     <Icon name={f.icon as IconKey} width={22} height={22} />
                   </span>
                   {f.metric && (

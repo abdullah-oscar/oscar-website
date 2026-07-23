@@ -197,6 +197,8 @@ export type Testimonial = {
   name: string;
   role: string;
   initials: string;
+  /** Placeholder copy standing in for a real quote — swap for the real thing before this ships. */
+  sample?: boolean;
 };
 
 export const testimonials: Testimonial[] = [
@@ -213,6 +215,38 @@ export const testimonials: Testimonial[] = [
     name: "Russ Lo Bello",
     role: "President, The Phoenix Organization",
     initials: "RL",
+  },
+  {
+    quote:
+      "We used to spend a full day every week pulling reports across locations. Now it's automatic, and the flags Oscar sends are usually right.",
+    name: "Director of Operations",
+    role: "45-unit convenience retail group",
+    initials: "DO",
+    sample: true,
+  },
+  {
+    quote:
+      "The labor alerts alone paid for the platform in the first month.",
+    name: "General Manager",
+    role: "Quick-service restaurant group",
+    initials: "GM",
+    sample: true,
+  },
+  {
+    quote:
+      "Our district leaders finally see the same numbers we do, in real time, instead of finding out on Monday.",
+    name: "VP of Operations",
+    role: "Multi-unit hospitality group",
+    initials: "VP",
+    sample: true,
+  },
+  {
+    quote:
+      "Oscar catches void patterns our old system never flagged — training gaps we didn't even know we had.",
+    name: "Loss Prevention Manager",
+    role: "Multi-location retail chain",
+    initials: "LP",
+    sample: true,
   },
 ];
 

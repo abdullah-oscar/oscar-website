@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans, Newsreader } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/site";
 import {
@@ -9,12 +9,21 @@ import {
   websiteLd,
 } from "@/lib/structured-data";
 
-// One family across the whole site — the same face the brand already uses.
+// Jakarta for body/UI — the workhorse face the brand already uses.
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],
   display: "swap",
   weight: ["400", "500", "600", "700", "800"],
+});
+
+// Newsreader for headings only — an editorial serif for display type,
+// paired with Jakarta for everything else (see --font-display in globals.css).
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -87,7 +96,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${jakarta.variable} antialiased`}
+      className={`${jakarta.variable} ${newsreader.variable} antialiased`}
     >
       <body className="min-h-dvh bg-paper text-ink">
         {/* JSON-LD structured data (first-party, trusted). Placed in body

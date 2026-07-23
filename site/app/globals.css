@@ -27,11 +27,12 @@
   --color-navy-600: #0c2d50;
   --color-navy-400: #163f68;
 
-  /* — Neutrals — */
+  /* — Neutrals — warmed slightly off cool blue-white so the brand blue
+     reads as a deliberate accent rather than the page's ambient hue — */
   --color-paper: #ffffff;
-  --color-mist: #f7fbfe;  /* bg-soft */
-  --color-line: #e2edf4;  /* border  */
-  --color-line-2: #cfe0ee;
+  --color-mist: #f8f6f2;  /* bg-soft */
+  --color-line: #e8e2d8;  /* border  */
+  --color-line-2: #d9d0bf;
 
   /* — Text — */
   --color-ink: #1a2b3c;   /* text      */
@@ -43,9 +44,10 @@
   --color-signal-warn: #f59e0b;
   --color-signal-crit: #dc2626;
 
-  /* — Type: one family, matching the brand — */
+  /* — Type: Jakarta for body/UI, Newsreader (editorial serif) for
+     headings only — see the h1–h4 rule below — */
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-newsreader), Georgia, "Times New Roman", serif;
 
   /* — Radii — */
   --radius-sm: 10px;
@@ -117,7 +119,7 @@ body {
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   color: var(--color-navy);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.01em; /* serifs need less negative tracking than the old sans did */
   text-wrap: balance;
 }
 

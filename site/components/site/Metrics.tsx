@@ -55,7 +55,7 @@ export function Metrics() {
             const numeric = Number(m.value);
             return (
               <div key={m.label} className="text-center">
-                <div className="tnum text-4xl font-extrabold tracking-tight text-navy sm:text-[2.75rem]">
+                <div className="tnum text-5xl font-extrabold tracking-tight text-navy sm:text-[3.75rem]">
                   {Number.isNaN(numeric) ? (
                     m.value
                   ) : (

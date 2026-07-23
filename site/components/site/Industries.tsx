@@ -25,7 +25,7 @@ export function Industries() {
           {industries.map((ind, i) => (
             <Reveal key={ind.title} delay={i}>
               <article className="card-lift group flex h-full flex-col rounded-xl border border-line bg-white p-6">
-                <span className="grid size-12 place-items-center rounded-lg bg-brand-50 text-brand-600 transition-colors group-hover:bg-brand-500 group-hover:text-white">
+                <span className="grid size-12 place-items-center rounded-lg bg-navy text-white transition-colors group-hover:bg-brand-500">
                   <Icon name={ind.icon as IconKey} width={24} height={24} />
                 </span>
                 <h3 className="mt-5 text-[1.02rem] font-bold leading-snug">
