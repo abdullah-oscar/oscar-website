@@ -5,6 +5,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { Container } from "@/components/ui/primitives";
 import { Reveal } from "@/components/ui/Reveal";
+import { Icon } from "@/components/ui/icons";
 import { site } from "@/lib/site";
 
 type Tone = "crit" | "warn" | "info" | "ok";
@@ -24,7 +25,13 @@ const ALERTS: Alert[] = [
   { text: "Location #05 — Comp rate doubled this week", tone: "warn", options: [{ label: "Review void reports", correct: true }, { label: "Approve comp policy", correct: false }, { label: "Ignore variance", correct: false }] },
 ];
 
-type Card = { id: number; alert: Alert; timeLeft: number; total: number; result?: "good" | "bad" };
+type Card = {
+  id: number;
+  alert: Alert;
+  timeLeft: number;
+  total: number;
+  result?: "good" | "bad" | "oscar";
+};
 
 const toneStyle: Record<Tone, { chip: string; label: string; bar: string }> = {
   crit: { chip: "bg-red-50 text-red-700 border-red-200", label: "Critical", bar: "#dc2626" },
@@ -39,10 +46,17 @@ export function Game() {
   const [score, setScore] = useState(100);
   const [resolved, setResolved] = useState(0);
   const [level, setLevel] = useState(1);
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  const [oscarCharges, setOscarCharges] = useState(3);
+  const [shaking, setShaking] = useState(false);
 
   const scoreRef = useRef(100);
   const resolvedRef = useRef(0);
   const levelRef = useRef(1);
+  const streakRef = useRef(0);
+  const bestStreakRef = useRef(0);
+  const oscarChargesRef = useRef(3);
   const runningRef = useRef(false);
   const idRef = useRef(0);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -52,6 +66,16 @@ export function Game() {
     setScore(scoreRef.current);
     setResolved(resolvedRef.current);
     setLevel(levelRef.current);
+    setStreak(streakRef.current);
+    setBestStreak(bestStreakRef.current);
+    setOscarCharges(oscarChargesRef.current);
+  }, []);
+
+  // Re-triggers the shake CSS animation even if it's already mid-run, by
+  // dropping the class for a frame before re-adding it.
+  const triggerShake = useCallback(() => {
+    setShaking(false);
+    requestAnimationFrame(() => setShaking(true));
   }, []);
 
   const stopLoops = useCallback(() => {
@@ -86,6 +110,9 @@ export function Game() {
     scoreRef.current = 100;
     resolvedRef.current = 0;
     levelRef.current = 1;
+    streakRef.current = 0;
+    bestStreakRef.current = 0;
+    oscarChargesRef.current = 3;
     runningRef.current = true;
     idRef.current = 0;
     sync();
@@ -106,6 +133,7 @@ export function Game() {
     tickRef.current = setInterval(() => {
       setCards((prev) => {
         let changed = false;
+        let missed = false;
         const next: Card[] = [];
         for (const c of prev) {
           if (c.result) {
@@ -115,13 +143,16 @@ export function Game() {
           const tl = c.timeLeft - 100;
           if (tl <= 0) {
             scoreRef.current = Math.max(0, scoreRef.current - 10);
+            streakRef.current = 0;
             changed = true;
+            missed = true;
           } else {
             next.push({ ...c, timeLeft: tl });
           }
         }
         if (changed) {
           sync();
+          if (missed) triggerShake();
           if (scoreRef.current <= 0) setTimeout(endGame, 0);
         }
         return next;
@@ -129,7 +160,7 @@ export function Game() {
     }, 100);
 
     scheduleSpawn();
-  }, [endGame, scheduleSpawn, sync]);
+  }, [endGame, scheduleSpawn, sync, triggerShake]);
 
   const answer = useCallback(
     (id: number, correct: boolean) => {
@@ -138,10 +169,15 @@ export function Game() {
       );
       if (correct) {
         resolvedRef.current += 1;
-        scoreRef.current = Math.min(100, scoreRef.current + 5);
+        streakRef.current += 1;
+        bestStreakRef.current = Math.max(bestStreakRef.current, streakRef.current);
+        const comboBonus = Math.min(5, streakRef.current - 1);
+        scoreRef.current = Math.min(100, scoreRef.current + 5 + comboBonus);
         levelRef.current = Math.floor(resolvedRef.current / 8) + 1;
       } else {
+        streakRef.current = 0;
         scoreRef.current = Math.max(0, scoreRef.current - 15);
+        triggerShake();
       }
       sync();
       setTimeout(() => {
@@ -149,8 +185,36 @@ export function Game() {
         if (scoreRef.current <= 0) endGame();
       }, 750);
     },
-    [endGame, sync]
+    [endGame, sync, triggerShake]
   );
+
+  // Limited-use power-up: instantly resolves the single most urgent open
+  // alert (critical first, then soonest to expire) — a live demonstration
+  // of what Oscar does automatically, dropped into the middle of the game.
+  const callOscar = useCallback(() => {
+    if (oscarChargesRef.current <= 0) return;
+    setCards((prev) => {
+      const open = prev.filter((c) => !c.result);
+      if (open.length === 0) return prev;
+      const rank = (c: Card) => (c.alert.tone === "crit" ? 0 : c.alert.tone === "warn" ? 1 : 2);
+      const target = [...open].sort((a, b) => rank(a) - rank(b) || a.timeLeft - b.timeLeft)[0];
+
+      oscarChargesRef.current -= 1;
+      resolvedRef.current += 1;
+      streakRef.current += 1;
+      bestStreakRef.current = Math.max(bestStreakRef.current, streakRef.current);
+      scoreRef.current = Math.min(100, scoreRef.current + 5);
+      levelRef.current = Math.floor(resolvedRef.current / 8) + 1;
+      sync();
+
+      const id = target.id;
+      setTimeout(() => {
+        setCards((p) => p.filter((c) => c.id !== id));
+      }, 900);
+
+      return prev.map((c) => (c.id === target.id ? { ...c, result: "oscar" } : c));
+    });
+  }, [sync]);
 
   useEffect(() => () => stopLoops(), [stopLoops]);
 
@@ -180,13 +244,19 @@ export function Game() {
         </div>
 
         <Reveal delay={2}>
-          <div className="mt-10 rounded-[20px] border border-line bg-white p-5 shadow-panel sm:p-6">
+          <div
+            onAnimationEnd={() => setShaking(false)}
+            className={`mt-10 rounded-[20px] border border-line bg-white p-5 shadow-panel sm:p-6 ${
+              shaking ? "animate-shake" : ""
+            }`}
+          >
             {/* HUD */}
             <div className="flex flex-wrap items-center justify-between gap-4">
               <Stat label="Score" value={score} tone="navy" />
               <div className="flex items-center gap-6">
                 <Stat label="Level" value={level} tone="brand" />
                 <Stat label="Resolved" value={resolved} tone="emerald" />
+                <StreakStat streak={streak} />
               </div>
             </div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-line">
@@ -195,6 +265,26 @@ export function Game() {
                 style={{ width: `${score}%` }}
               />
             </div>
+
+            {view === "playing" && (
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <p className="text-[11px] font-medium text-muted">
+                  Overwhelmed? Let Oscar catch one for you.
+                </p>
+                <button
+                  type="button"
+                  onClick={callOscar}
+                  disabled={oscarCharges === 0 || cards.every((c) => c.result)}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-3.5 py-1.5 text-[12px] font-bold text-brand-700 transition-colors hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Icon name="bolt" width={13} height={13} />
+                  Call Oscar
+                  <span className="tnum rounded-full bg-white px-1.5 py-0.5 text-[10px]">
+                    ×{oscarCharges}
+                  </span>
+                </button>
+              </div>
+            )}
 
             {/* Arena */}
             <div className="mt-5 min-h-[240px]">
@@ -230,7 +320,9 @@ export function Game() {
                       </div>
                       <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate">
                         Alerts appear below. Pick the right action before time
-                        runs out. Miss too many and your score tanks.
+                        runs out. Miss too many and your score tanks — but
+                        you&rsquo;ve got a few Call Oscar assists if it gets
+                        overwhelming.
                       </p>
                       <button
                         onClick={start}
@@ -260,9 +352,19 @@ export function Game() {
                         </span>
                         .
                       </p>
-                      <p className="mt-2 max-w-sm text-xs leading-relaxed text-muted">
-                        This is what Oscar handles automatically — 24/7, across
-                        every location, without missing a beat.
+                      <div className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs text-muted">
+                        <span>
+                          Longest streak{" "}
+                          <span className="font-bold text-navy">{bestStreak}</span>
+                        </span>
+                        <span>
+                          Oscar assists used{" "}
+                          <span className="font-bold text-navy">{3 - oscarCharges}</span>
+                        </span>
+                      </div>
+                      <p className="mt-3 max-w-sm text-xs leading-relaxed text-muted">
+                        Oscar would&rsquo;ve caught every one of these — instantly,
+                        24/7, across every location, without missing a beat.
                       </p>
                       <div className="mt-6 flex flex-wrap justify-center gap-3">
                         <button
@@ -287,6 +389,24 @@ export function Game() {
         </Reveal>
       </Container>
     </section>
+  );
+}
+
+function StreakStat({ streak }: { streak: number }) {
+  const color = streak >= 5 ? "text-red-600" : streak >= 3 ? "text-amber-600" : "text-muted";
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-muted">Streak</span>
+      <motion.span
+        key={streak}
+        initial={{ scale: 1.3 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className={`tnum text-xl font-extrabold ${color}`}
+      >
+        {streak > 0 ? `🔥${streak}` : 0}
+      </motion.span>
+    </div>
   );
 }
 
@@ -338,7 +458,9 @@ function GameCard({
           ? "border-emerald-300 bg-emerald-50"
           : card.result === "bad"
             ? "border-red-300 bg-red-50"
-            : "border-line bg-white"
+            : card.result === "oscar"
+              ? "border-brand-300 bg-brand-50"
+              : "border-line bg-white"
       }`}
     >
       <div className="flex flex-wrap items-center gap-2">
@@ -372,6 +494,11 @@ function GameCard({
             ))}
           </div>
         </>
+      ) : card.result === "oscar" ? (
+        <div className="mt-2 flex items-center gap-1.5 text-[12.5px] font-bold text-brand-700">
+          <Icon name="bolt" width={12} height={12} />
+          Oscar caught this instantly
+        </div>
       ) : (
         <div
           className={`mt-2 text-[12.5px] font-bold ${
