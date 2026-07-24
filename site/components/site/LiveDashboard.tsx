@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 
 /* ---------- count-up hook ---------- */
 function useCountUp(target: number, duration = 1400, start = true) {
@@ -25,42 +25,34 @@ function useCountUp(target: number, duration = 1400, start = true) {
   return value;
 }
 
-const bars = [62, 74, 55, 83, 68, 94, 71, 88];
-const flagged = 2;
-const highlight = 5;
+/** KPI tiles matching the shape of the real Daily Metrics page — a Daily
+ * headline figure plus a WTD line underneath. Illustrative numbers only. */
+const kpis = [
+  { label: "Sales", daily: "$62,400", dailyDelta: "+3.1%", wtd: "$412K WTD", wtdDelta: "+4.8%" },
+  { label: "Labor hours", daily: "210", dailyDelta: "+1.2%", wtd: "1,380 WTD", wtdDelta: "+2.0%" },
+  { label: "Avg check", daily: "$18.40", dailyDelta: "+$0.35", wtd: "$18.10 WTD", wtdDelta: "+$0.20" },
+  { label: "Speed of service", daily: "2m 05s", dailyDelta: "−8s", wtd: "2m 10s WTD", wtdDelta: "−5s" },
+] as const;
 
-type Alert = { tone: "warn" | "info" | "ok"; text: string };
-const feedSource: Alert[] = [
-  { tone: "warn", text: "Loc #14 — Void anomaly: 3 unusual comps in 2 hrs" },
-  { tone: "info", text: "Loc #07 — Labor 4% over target · alerted GM" },
-  { tone: "ok", text: "Loc #31 — Sales anomaly resolved · staffing gap" },
-  { tone: "warn", text: "Loc #22 — Discount rate spiked +18% today" },
-  { tone: "info", text: "Loc #03 — Weekend labor forecast updated" },
-  { tone: "ok", text: "Weekly compliance report delivered to 34 DLs" },
+const todo = [
+  <>Net sales <b>$62.4K</b>, +3.1% vs last year — 2 of 34 stores missed target.</>,
+  <>Avg check <b>$18.40</b>, up $0.35 vs last year, rising 3 days straight.</>,
+  <>Drive-thru time <b>2m 05s</b>, 8s faster than last year — best pace this month.</>,
 ];
 
-const toneStyles: Record<Alert["tone"], string> = {
-  warn: "border-amber-200 bg-amber-50 text-amber-800",
-  info: "border-brand-100 bg-brand-50 text-brand-700",
-  ok: "border-emerald-200 bg-emerald-50 text-emerald-700",
-};
-const toneDot: Record<Alert["tone"], string> = {
-  warn: "bg-signal-warn",
-  info: "bg-brand-500",
-  ok: "bg-signal-ok",
-};
+/* trailing 7-day sales trend — hand-set illustrative points, this year vs prior year */
+const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const xs = [8, 51, 94, 137, 180, 223, 266];
+const thisYearY = [42, 36, 46, 26, 32, 14, 18];
+const priorYearY = [48, 44, 48, 40, 42, 36, 34];
+const toPoints = (ys: number[]) => xs.map((x, i) => `${x},${ys[i]}`).join(" ");
 
 export function LiveDashboard() {
   const [live, setLive] = useState(false);
-  const [feed, setFeed] = useState<(Alert & { id: number })[]>(
-    feedSource.slice(0, 3).map((a, i) => ({ ...a, id: i }))
-  );
-  const idRef = useRef(3);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
-  const revenue = useCountUp(48200, 1600, live);
-  const labor = useCountUp(28.3, 1200, live);
-  const flags = useCountUp(3, 900, live);
+  const sales = useCountUp(62400, 1400, live);
+  const laborHours = useCountUp(210, 1000, live);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -78,18 +70,6 @@ export function LiveDashboard() {
     return () => io.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (!live) return;
-    const int = setInterval(() => {
-      setFeed((prev) => {
-        const next = feedSource[idRef.current % feedSource.length];
-        idRef.current += 1;
-        return [{ ...next, id: idRef.current }, ...prev].slice(0, 3);
-      });
-    }, 3400);
-    return () => clearInterval(int);
-  }, [live]);
-
   return (
     <div
       ref={rootRef}
@@ -100,7 +80,7 @@ export function LiveDashboard() {
         <div>
           <div className="text-sm font-bold text-white">Oscar AI</div>
           <div className="text-[11px] text-white/45">
-            Live operations · 34 locations
+            Daily metrics · 34 locations
           </div>
         </div>
         <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-400">
@@ -109,91 +89,96 @@ export function LiveDashboard() {
         </span>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-3 gap-px border-b border-line bg-line">
+      {/* KPI grid — Daily headline + WTD line, 4 metrics like the real page */}
+      <div className="grid grid-cols-2 gap-px border-b border-line bg-line">
         <Kpi
-          label="Revenue today"
-          value={`$${Math.round(revenue).toLocaleString()}`}
-          delta="↑ 6.4% vs last week"
-          tone="up"
+          label="Sales"
+          value={`$${Math.round(sales).toLocaleString()}`}
+          delta={kpis[0].dailyDelta}
+          sub={kpis[0].wtd}
+          subDelta={kpis[0].wtdDelta}
         />
         <Kpi
-          label="Labor %"
-          value={`${labor.toFixed(1)}%`}
-          delta="Within target"
-          tone="flat"
+          label="Labor hours"
+          value={`${Math.round(laborHours)}`}
+          delta={kpis[1].dailyDelta}
+          sub={kpis[1].wtd}
+          subDelta={kpis[1].wtdDelta}
         />
         <Kpi
-          label="Flags today"
-          value={`${Math.round(flags)}`}
-          delta="Needs review"
-          tone="down"
-          valueClass="text-signal-crit"
+          label="Avg check"
+          value={kpis[2].daily}
+          delta={kpis[2].dailyDelta}
+          sub={kpis[2].wtd}
+          subDelta={kpis[2].wtdDelta}
+        />
+        <Kpi
+          label="Speed of service"
+          value={kpis[3].daily}
+          delta={kpis[3].dailyDelta}
+          sub={kpis[3].wtd}
+          subDelta={kpis[3].wtdDelta}
         />
       </div>
 
-      {/* chart */}
-      <div className="px-5 pt-4">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-muted">
-          Revenue by location · this week
-        </div>
-        {/* h-full on the wrapper is required for the bars' % heights to resolve */}
-        <div className="mt-3 flex h-[78px] items-end gap-1.5">
-          {bars.map((h, i) => (
-            <div key={i} className="flex h-full flex-1 items-end">
-              <motion.div
-                className={`w-full rounded-t-[3px] ${
-                  i === flagged
-                    ? "bg-red-300"
-                    : i === highlight
-                      ? "bg-brand-500"
-                      : "bg-brand-100"
-                }`}
-                initial={{ height: 0 }}
-                animate={live ? { height: `${h}%` } : { height: 0 }}
-                transition={{
-                  duration: 0.75,
-                  delay: 0.15 + i * 0.05,
-                  ease: [0.34, 1.56, 0.64, 1],
-                }}
-              />
-            </div>
-          ))}
-        </div>
-        <div className="mt-1.5 flex justify-between text-[10px] font-medium text-muted">
-          <span>Mon</span>
-          <span>Wed</span>
-          <span>Fri</span>
-          <span>Sun</span>
-        </div>
-      </div>
-
-      {/* feed */}
-      <div className="px-4 pb-4 pt-4">
-        <div className="px-1 text-[10px] font-bold uppercase tracking-wider text-muted">
-          Recent alerts
-        </div>
-        <div className="mt-2 flex flex-col gap-1.5">
-          <AnimatePresence initial={false} mode="popLayout">
-            {feed.map((a) => (
-              <motion.div
-                key={a.id}
-                layout
-                initial={{ opacity: 0, x: -10, height: 0 }}
-                animate={{ opacity: 1, x: 0, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className={`flex items-center gap-2.5 rounded-lg border px-3 py-2 ${toneStyles[a.tone]}`}
-              >
-                <span
-                  className={`size-1.5 shrink-0 rounded-full ${toneDot[a.tone]}`}
-                />
-                <span className="truncate text-[11.5px] font-medium">
-                  {a.text}
-                </span>
-              </motion.div>
+      {/* to-do note + trailing chart */}
+      <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-[1fr_1.1fr]">
+        <div className="-rotate-1 rounded-lg border border-amber-200 bg-amber-50 p-3.5 shadow-sm">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[9.5px] font-bold uppercase tracking-wider text-amber-800">
+              Today&rsquo;s to-do
+            </span>
+            <span className="text-[9.5px] font-bold text-amber-700">0/3</span>
+          </div>
+          <ol className="flex flex-col gap-1.5 text-[10.5px] leading-snug text-amber-900">
+            {todo.map((line, i) => (
+              <li key={i} className="flex gap-1.5">
+                <span className="font-bold">{i + 1}.</span>
+                <span>{line}</span>
+              </li>
             ))}
-          </AnimatePresence>
+          </ol>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between">
+            <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted">
+              Sales · trailing 7 days
+            </span>
+            <span className="flex items-center gap-2.5 text-[9px] font-semibold text-muted">
+              <span className="inline-flex items-center gap-1">
+                <span className="h-[2px] w-2.5 rounded-full bg-brand-500" /> This yr
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <span className="h-[2px] w-2.5 rounded-full bg-line-2" /> Prior yr
+              </span>
+            </span>
+          </div>
+          <svg viewBox="0 0 274 56" className="mt-2 h-14 w-full" aria-hidden>
+            <polyline
+              points={toPoints(priorYearY)}
+              fill="none"
+              stroke="var(--color-line-2)"
+              strokeWidth="1.5"
+              strokeDasharray="3.5 3"
+              vectorEffect="non-scaling-stroke"
+            />
+            <motion.polyline
+              points={toPoints(thisYearY)}
+              fill="none"
+              stroke="var(--color-brand-500)"
+              strokeWidth="2"
+              vectorEffect="non-scaling-stroke"
+              initial={{ pathLength: 0 }}
+              animate={live ? { pathLength: 1 } : { pathLength: 0 }}
+              transition={{ duration: 1.1, ease: "easeOut" }}
+            />
+          </svg>
+          <div className="mt-1 flex justify-between text-[9px] font-medium text-muted">
+            {days.map((d) => (
+              <span key={d}>{d}</span>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -204,31 +189,27 @@ function Kpi({
   label,
   value,
   delta,
-  tone,
-  valueClass = "text-navy",
+  sub,
+  subDelta,
 }: {
   label: string;
   value: string;
   delta: string;
-  tone: "up" | "down" | "flat";
-  valueClass?: string;
+  sub: string;
+  subDelta: string;
 }) {
-  const deltaTone =
-    tone === "up"
-      ? "text-emerald-600"
-      : tone === "down"
-        ? "text-signal-crit"
-        : "text-muted";
   return (
     <div className="bg-white px-4 py-3">
-      <div className="text-[9.5px] font-bold uppercase tracking-wider text-muted">
+      <div className="text-[9px] font-bold uppercase tracking-wider text-muted">
         {label}
       </div>
-      <div className={`tnum mt-1 text-xl font-extrabold ${valueClass}`}>
-        {value}
+      <div className="tnum mt-1 flex items-baseline gap-1.5">
+        <span className="text-lg font-extrabold text-navy">{value}</span>
+        <span className="text-[10px] font-bold text-emerald-600">{delta}</span>
       </div>
-      <div className={`mt-0.5 text-[10.5px] font-semibold ${deltaTone}`}>
-        {delta}
+      <div className="tnum mt-1 flex items-baseline gap-1.5 border-t border-line pt-1">
+        <span className="text-[10px] font-semibold text-slate">{sub}</span>
+        <span className="text-[9.5px] font-bold text-emerald-600">{subDelta}</span>
       </div>
     </div>
   );

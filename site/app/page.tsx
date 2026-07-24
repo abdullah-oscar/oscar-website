@@ -21,15 +21,15 @@ export default function Home() {
         <Hero />
         <TrustedBy />
         <CommandCenter />
-        <Features />
+        {/* <Features /> */}
         <HowItWorks />
-        <WhyOscar />
+        {/* <WhyOscar /> */}
         <Metrics />
-        <Industries />
+        {/* <Industries /> */}
         <Testimonials />
         <Game />
         <Faq />
-        <CTA />
+        {/* <CTA /> */}
       </main>
       <Footer />
     </>
