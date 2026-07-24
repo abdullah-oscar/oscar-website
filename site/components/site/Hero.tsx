@@ -1,35 +1,118 @@
 "use client";
 
-import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { OscarMascot } from "./OscarMascot";
 import { Icon } from "@/components/ui/icons";
 import { Reveal } from "@/components/ui/Reveal";
 import { site } from "@/lib/site";
 
-/** Alerts that drift around Oscar — the things he's catching while you read. */
-const chips = [
-  { tone: "crit", text: "Loc #14 — void anomaly", top: "8%", left: "-6%", delay: 0 },
-  { tone: "warn", text: "Loc #07 — labor 4% over", top: "40%", left: "-14%", delay: 1.6 },
-  { tone: "ok", text: "Loc #31 — resolved", top: "68%", left: "2%", delay: 3.1 },
-  { tone: "warn", text: "Loc #22 — comps spiking", top: "22%", left: "74%", delay: 2.3 },
-  { tone: "ok", text: "Report delivered", top: "58%", left: "78%", delay: 4.2 },
+const INTRO_MS = 2600;
+const CYCLE_MS = 2000;
+const TYPE_SPEED_MS = 22;
+
+const INTRO_TEXT = "Hi, I’m Oscar — I watch every location, every shift.";
+
+/** Quirky openers, picked at random per visit — same rhythm as the original,
+ *  same pivot from an ostrich trait to Oscar's actual job. */
+const introVariants = [
+  ["Ostriches don’t", "bury their heads.", "Operators do."],
+  ["Ostriches have the", "sharpest eyes on land.", "Oscar never blinks."],
+  ["Ostriches can’t fly.", "They just watch, instead.", "So does Oscar."],
 ] as const;
 
-const chipStyle = {
-  crit: "border-red-200 bg-red-50 text-red-700",
-  warn: "border-amber-200 bg-amber-50 text-amber-800",
-  ok: "border-emerald-200 bg-emerald-50 text-emerald-700",
-} as const;
+/**
+ * What Oscar is "catching" right now — drives the H1's rotating second
+ * line, the chat bubble's specific detail, and the matching falling tile,
+ * so all three always agree.
+ */
+const issues = [
+  {
+    label: "labor overages.",
+    bubble: "Location #07 is 4% over on labor.",
+    tone: "warn" as const,
+    icon: "trend" as const,
+    loc: "Loc #07",
+    detail: "Labor 4% over",
+    pos: { top: "38%", left: "-16%" },
+  },
+  {
+    label: "void fraud.",
+    bubble: "3 unusual voids just hit Location #14.",
+    tone: "crit" as const,
+    icon: "shield" as const,
+    loc: "Loc #14",
+    detail: "Void anomaly",
+    pos: { top: "6%", left: "-8%" },
+  },
+  {
+    label: "comp abuse.",
+    bubble: "Comps are spiking at Location #22.",
+    tone: "warn" as const,
+    icon: "bolt" as const,
+    loc: "Loc #22",
+    detail: "Comps spiking",
+    pos: { top: "24%", left: "76%" },
+  },
+  {
+    label: "compliance risks.",
+    bubble: "A break violation just hit Location #09.",
+    tone: "warn" as const,
+    icon: "lock" as const,
+    loc: "Loc #09",
+    detail: "Break violation",
+    pos: { top: "66%", left: "2%" },
+  },
+];
 
-const chipDot = {
-  crit: "bg-signal-crit",
-  warn: "bg-signal-warn",
-  ok: "bg-signal-ok",
+const tileTone = {
+  crit: { ring: "border-red-200", bg: "bg-red-50", fg: "text-red-600" },
+  warn: { ring: "border-amber-200", bg: "bg-amber-50", fg: "text-amber-700" },
 } as const;
 
 export function Hero() {
+  const [phase, setPhase] = useState<"intro" | "cycle">("intro");
+  const [index, setIndex] = useState(0);
+  const [typed, setTyped] = useState("");
+  // Index 0 on the server (stable for hydration); randomized on the client
+  // right after mount so repeat visits don't always see the same opener.
+  const [introIdx, setIntroIdx] = useState(0);
+
+  useEffect(() => {
+    setIntroIdx(Math.floor(Math.random() * introVariants.length));
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => setPhase("cycle"), INTRO_MS);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    if (phase !== "cycle") return;
+    const int = setInterval(() => {
+      setIndex((i) => (i + 1) % issues.length);
+    }, CYCLE_MS);
+    return () => clearInterval(int);
+  }, [phase]);
+
+  // Types out the bubble's current line — intro message first, then each
+  // issue's detail line as the cycle rotates.
+  useEffect(() => {
+    const target = phase === "intro" ? INTRO_TEXT : issues[index].bubble;
+    setTyped("");
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      setTyped(target.slice(0, i));
+      if (i >= target.length) clearInterval(id);
+    }, TYPE_SPEED_MS);
+    return () => clearInterval(id);
+  }, [phase, index]);
+
+  const active = issues[index];
+
   return (
-    <section id="top" className="relative overflow-hidden bg-white pt-28 pb-16 md:pt-32 md:pb-20">
+    <section id="top" className="relative overflow-hidden bg-white pt-28 pb-6 md:pt-32 md:pb-8">
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-x-0 top-0 h-[600px] bg-gradient-to-b from-brand-50 to-white" />
         <div className="absolute inset-0 bg-grid mask-fade-b opacity-40" />
@@ -38,26 +121,55 @@ export function Hero() {
       <div className="relative mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-10 px-6 md:px-8 lg:grid-cols-[1.08fr_1fr] lg:gap-8">
         {/* Left */}
         <div>
-          <Reveal>
-            <span className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-brand-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-700">
-              <span className="size-1.5 rounded-full bg-brand-500 animate-blink" />
-              Meet Oscar · AI-powered franchise intelligence
-            </span>
-          </Reveal>
-
           {/* No text-balance here: it fights the explicit <br>s and produces
               ragged lines. The breaks are authored deliberately. */}
-          <Reveal delay={1}>
-            <h1 className="mt-6 text-[3rem] font-extrabold leading-[1.0] tracking-[-0.01em] sm:text-[3.8rem] lg:text-[4.6rem]">
-              Ostriches don&rsquo;t
-              <br />
-              bury their heads.
-              <br />
-              <span className="text-brand-600">Operators do.</span>
+          <Reveal>
+            <h1 className="min-h-[3.3em] text-[3rem] font-extrabold leading-[1.0] tracking-[-0.01em] sm:text-[3.8rem] lg:text-[4.6rem] sm:min-h-[3em]">
+              <AnimatePresence mode="wait">
+                {phase === "intro" ? (
+                  <motion.span
+                    key="intro-h1"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.4 }}
+                    className="block"
+                  >
+                    {introVariants[introIdx][0]}
+                    <br />
+                    {introVariants[introIdx][1]}
+                    <br />
+                    <span className="text-brand-600">{introVariants[introIdx][2]}</span>
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="cycle-h1"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="block"
+                  >
+                    Oscar already caught
+                    <br />
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={index}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.35 }}
+                        className="block text-brand-600"
+                      >
+                        {active.label}
+                      </motion.span>
+                    </AnimatePresence>
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </h1>
           </Reveal>
 
-          <Reveal delay={2}>
+          <Reveal delay={1}>
             <p className="mt-6 max-w-xl text-pretty text-[1.05rem] leading-relaxed text-slate">
               You can&rsquo;t watch every location at once. Oscar can — and his
               eyes never close. He catches revenue leaks, labor blowouts, and
@@ -66,7 +178,7 @@ export function Hero() {
             </p>
           </Reveal>
 
-          <Reveal delay={3}>
+          <Reveal delay={2}>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
                 href={site.links.demo}
@@ -93,31 +205,52 @@ export function Hero() {
               <OscarMascot className="w-full" />
             </Reveal>
 
-            {/* alerts he's catching */}
-            {chips.map((c) => (
-              <motion.div
-                key={c.text}
-                className="pointer-events-none absolute hidden xl:block"
-                style={{ top: c.top, left: c.left }}
-                initial={{ opacity: 0, y: 8, scale: 0.9 }}
-                animate={{ opacity: [0, 1, 1, 0], y: [8, 0, 0, -8] }}
-                transition={{
-                  duration: 5,
-                  delay: c.delay,
-                  repeat: Infinity,
-                  repeatDelay: 3,
-                  times: [0, 0.12, 0.8, 1],
-                  ease: "easeOut",
-                }}
-              >
-                <span
-                  className={`flex items-center gap-2 whitespace-nowrap rounded-full border px-3 py-1.5 text-[11.5px] font-bold shadow-panel ${chipStyle[c.tone]}`}
+            {/* Oscar's own chat bubble — introduces himself, then cycles
+                through what he's catching right now. Text types out rather
+                than fading in. */}
+            <div
+              className="pointer-events-none absolute hidden w-[210px] xl:block"
+              style={{ top: "-9%", left: "56%" }}
+            >
+              <div className="relative min-h-[3.6rem] rounded-2xl border border-line bg-white px-4 py-3 shadow-panel">
+                <span className="absolute -bottom-1.5 left-6 size-3 rotate-45 border-b border-r border-line bg-white" />
+                <p className="text-[13px] font-semibold leading-snug text-ink">
+                  {typed}
+                  <span className="ml-0.5 inline-block w-[2px] animate-blink bg-navy align-middle h-[13px]" />
+                </p>
+              </div>
+            </div>
+
+            {/* the tile matching whatever Oscar's currently catching */}
+            <AnimatePresence mode="wait">
+              {phase === "cycle" && (
+                <motion.div
+                  key={index}
+                  className="pointer-events-none absolute hidden xl:block"
+                  style={active.pos}
+                  initial={{ opacity: 0, y: -14, scale: 0.85, rotate: -4 }}
+                  animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <span className={`size-1.5 rounded-full ${chipDot[c.tone]}`} />
-                  {c.text}
-                </span>
-              </motion.div>
-            ))}
+                  <div className="flex items-center gap-2.5 whitespace-nowrap rounded-2xl border border-line bg-white/95 py-2 pl-2 pr-3.5 shadow-lg shadow-navy/10 backdrop-blur-sm">
+                    <span
+                      className={`grid size-7 shrink-0 place-items-center rounded-full border ${tileTone[active.tone].ring} ${tileTone[active.tone].bg} ${tileTone[active.tone].fg}`}
+                    >
+                      <Icon name={active.icon} width={14} height={14} />
+                    </span>
+                    <span>
+                      <span className="block text-[11.5px] font-extrabold leading-tight text-navy">
+                        {active.loc}
+                      </span>
+                      <span className="block text-[10.5px] font-medium leading-tight text-slate">
+                        {active.detail}
+                      </span>
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* the line that lands the idea */}
