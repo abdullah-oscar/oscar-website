@@ -7,8 +7,6 @@ import { ScrollColorText } from "@/components/ui/ScrollColorText";
 import { Icon } from "@/components/ui/icons";
 import { testimonials } from "@/lib/site";
 
-const cardTone = ["brand", "navy", "white", "white", "white", "white"] as const;
-
 export function Testimonials() {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [atStart, setAtStart] = useState(true);
@@ -72,72 +70,35 @@ export function Testimonials() {
         <div
           ref={scrollerRef}
           onScroll={updateEdges}
-          className="[scrollbar-width:none] mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 [&::-webkit-scrollbar]:hidden"
+          className="[scrollbar-width:none] mask-fade-x mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 [&::-webkit-scrollbar]:hidden"
         >
-          {testimonials.map((t, i) => {
-            const tone = cardTone[i] ?? "white";
-            return (
-              <Reveal
-                key={t.name + t.role}
-                delay={i % 3}
-                className="w-[82vw] max-w-[360px] shrink-0 snap-start sm:w-[46vw] lg:w-[27vw]"
-              >
-                <figure
-                  className={`relative flex h-full flex-col rounded-[20px] p-7 ${
-                    tone === "brand"
-                      ? "bg-brand-500"
-                      : tone === "navy"
-                        ? "bg-navy"
-                        : "border border-line bg-white"
-                  }`}
-                >
-                  {t.sample && (
-                    <span className="absolute right-5 top-5 rounded-full border border-line bg-mist px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-muted">
-                      Sample quote
-                    </span>
-                  )}
-                  <div
-                    className={`text-base leading-none ${
-                      tone === "white" ? "text-amber-400" : "text-white/80"
-                    }`}
-                    aria-label="5 out of 5 stars"
-                  >
-                    ★★★★★
+          {testimonials.map((t, i) => (
+            <Reveal
+              key={t.name + t.role}
+              delay={i % 3}
+              className="w-[82vw] max-w-[360px] shrink-0 snap-start sm:w-[46vw] lg:w-[27vw]"
+            >
+              <figure className="flex h-full flex-col justify-between rounded-[20px] border border-line bg-white p-7 shadow-sm">
+                {t.sample && (
+                  <span className="mb-3 inline-flex w-fit items-center rounded-full border border-line bg-mist px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-muted">
+                    Sample quote
+                  </span>
+                )}
+                <blockquote className="flex-1 text-pretty text-[16px] font-medium leading-relaxed text-ink">
+                  &ldquo;{t.quote}&rdquo;
+                </blockquote>
+                <figcaption className="mt-8 flex items-center justify-between gap-3 border-t border-line pt-5">
+                  <div>
+                    <div className="text-[12.5px] font-bold text-navy">{t.name}</div>
+                    <div className="text-[11px] text-muted">{t.role}</div>
                   </div>
-                  <blockquote
-                    className={`mt-5 flex-1 text-pretty text-[14.5px] leading-relaxed ${
-                      tone === "white" ? "text-ink" : "text-white"
-                    }`}
-                  >
-                    &ldquo;{t.quote}&rdquo;
-                  </blockquote>
-                  <figcaption
-                    className={`mt-6 flex items-center gap-2.5 border-t pt-5 ${
-                      tone === "white" ? "border-line" : "border-white/25"
-                    }`}
-                  >
-                    <span
-                      className={`grid size-10 shrink-0 place-items-center rounded-full text-[11px] font-extrabold ${
-                        tone === "white"
-                          ? "border-2 border-brand-100 bg-brand-50 text-brand-600"
-                          : "bg-white/15 text-white"
-                      }`}
-                    >
-                      {t.initials}
-                    </span>
-                    <div>
-                      <div className={`text-[12.5px] font-bold ${tone === "white" ? "text-navy" : "text-white"}`}>
-                        {t.name}
-                      </div>
-                      <div className={`text-[11px] ${tone === "white" ? "text-muted" : "text-white/70"}`}>
-                        {t.role}
-                      </div>
-                    </div>
-                  </figcaption>
-                </figure>
-              </Reveal>
-            );
-          })}
+                  <span className="grid size-11 shrink-0 place-items-center rounded-full border-2 border-brand-100 bg-brand-50 text-[11px] font-extrabold text-brand-600">
+                    {t.initials}
+                  </span>
+                </figcaption>
+              </figure>
+            </Reveal>
+          ))}
         </div>
       </Container>
     </section>
