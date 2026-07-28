@@ -178,19 +178,12 @@ export function AppFilm() {
     <div ref={rootRef}>
       {/* ---------------- the window ---------------- */}
       <div className="relative">
-        {/* The wash it floats on. z-0, not -z-10 — a negative z-index child
-            escapes to the root stacking context and ends up painted beneath
-            the enclosing section's background, i.e. invisible. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -inset-x-6 -inset-y-8 z-0 overflow-hidden rounded-[40px]"
-        >
-          <div className="absolute inset-0 bg-aurora opacity-70 animate-drift" />
-        </div>
-
+        {/* No aurora wash behind the frame: with the section's own gradient
+            plus shadow-stage, a third glow layer just read as haze. The
+            elevation shadow alone is what lifts the window off the page. */}
         <div
           ref={frameRef}
-          className="relative z-10 overflow-hidden rounded-xl border border-line bg-white shadow-stage"
+          className="relative overflow-hidden rounded-xl border border-line bg-white shadow-stage"
         >
           <div className="flex">
             {/* ---- rail ---- */}
