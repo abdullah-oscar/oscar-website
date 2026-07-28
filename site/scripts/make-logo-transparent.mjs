@@ -47,7 +47,13 @@ const CROP = { x: 0.063, y: 0.145, w: 0.878, h: 0.594 };
 
 // Alpha ramp on the minimum channel. At or below LO = fully opaque artwork;
 // at or above HI = background. Between the two is antialiasing.
-const LO = 236;
+//
+// LO is set just above the lightest genuine artwork (the pale blue wing and
+// legs peak at min ≈199) rather than close to the background. A narrow ramp
+// leaves the outer half of each antialiased edge fully opaque — and those
+// pixels are already blended toward white, so they render as a pale rim
+// around every glyph. Feathering the whole 208→252 band removes it.
+const LO = 208;
 const HI = 252;
 
 const clamp255 = (n) => (n < 0 ? 0 : n > 255 ? 255 : Math.round(n));
