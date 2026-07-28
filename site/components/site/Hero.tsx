@@ -1,134 +1,218 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { OscarMascot } from "./OscarMascot";
-import { Icon } from "@/components/ui/icons";
+import { HeroBackdrop } from "./HeroBackdrop";
+import { Icon, type IconKey } from "@/components/ui/icons";
 import { Reveal } from "@/components/ui/Reveal";
 import { site } from "@/lib/site";
 
+/* ================================================================
+   The hero.
+
+   Two acts share the right-hand stage and alternate every two beats:
+
+     FLOOR  — 36 locations breathing, one surfacing an issue, then
+              getting routed to a named person.
+     OSCAR  — the mascot, saying out loud what he just caught.
+
+   Alternating rather than picking one keeps the brand character in the
+   hero without giving up the product story. Oscar also takes the intro
+   beat on his own, so the first thing a visitor sees is him introducing
+   himself — then he shows them the floor.
+
+   Whichever act is on stage, the headline's rotating noun and the visual
+   are describing the same issue at the same moment. That sync is what
+   makes it read as a live system rather than two loops sharing a section.
+   ================================================================ */
+
 const INTRO_MS = 2600;
-const CYCLE_MS = 2000;
-const TYPE_SPEED_MS = 22;
+const CYCLE_MS = 3600;
+const ROUTE_AT_MS = 2000;
+const TYPE_MS = 24;
 
-const INTRO_TEXT = "Hi, I’m Oscar — I watch every location, every shift.";
+const INTRO_TEXT = "Hi, I'm Oscar — I watch every location, every shift.";
 
-/** Quirky openers, picked at random per visit — same rhythm as the original,
- *  same pivot from an ostrich trait to Oscar's actual job. */
+/** Quirky openers, picked at random per visit — the brand's own voice. */
 const introVariants = [
-  ["Ostriches don’t", "bury their heads.", "Operators do."],
+  ["Ostriches don't", "bury their heads.", "Operators do."],
   ["Ostriches have the", "sharpest eyes on land.", "Oscar never blinks."],
-  ["Ostriches can’t fly.", "They just watch, instead.", "So does Oscar."],
+  ["Ostriches can't fly.", "They just watch, instead.", "So does Oscar."],
 ] as const;
 
-/**
- * What Oscar is "catching" right now — drives the H1's rotating second
- * line, the chat bubble's specific detail, and the matching falling tile,
- * so all three always agree.
- */
-const issues = [
+type Tone = "warn" | "crit";
+
+type Issue = {
+  /** Completes "Oscar already caught ___" */
+  noun: string;
+  loc: string;
+  detail: string;
+  /** What Oscar says out loud during his act. */
+  bubble: string;
+  tone: Tone;
+  icon: IconKey;
+  owner: string;
+  /** Which tile on the floor lights up — spread apart so the eye moves. */
+  node: number;
+};
+
+const issues: Issue[] = [
   {
-    label: "labor overages.",
-    bubble: "Location #07 is 4% over on labor.",
-    tone: "warn" as const,
-    icon: "trend" as const,
-    loc: "Loc #07",
-    detail: "Labor 4% over",
-    pos: { top: "38%", left: "-16%" },
-  },
-  {
-    label: "void fraud.",
-    bubble: "3 unusual voids just hit Location #14.",
-    tone: "crit" as const,
-    icon: "shield" as const,
-    loc: "Loc #14",
-    detail: "Void anomaly",
-    pos: { top: "6%", left: "-8%" },
-  },
-  {
-    label: "comp abuse.",
+    noun: "comp abuse.",
+    loc: "Location #22",
+    detail: "Comps spiking +18% vs normal",
     bubble: "Comps are spiking at Location #22.",
-    tone: "warn" as const,
-    icon: "bolt" as const,
-    loc: "Loc #22",
-    detail: "Comps spiking",
-    pos: { top: "24%", left: "76%" },
+    tone: "warn",
+    icon: "bolt",
+    owner: "Dana R.",
+    node: 22,
   },
   {
-    label: "compliance risks.",
+    noun: "void fraud.",
+    loc: "Location #14",
+    detail: "3 unusual voids in 20 minutes",
+    bubble: "3 unusual voids just hit Location #14.",
+    tone: "crit",
+    icon: "shield",
+    owner: "Marcus T.",
+    node: 7,
+  },
+  {
+    noun: "labor overages.",
+    loc: "Location #07",
+    detail: "Labor running 4% over target",
+    bubble: "Location #07 is 4% over on labor.",
+    tone: "warn",
+    icon: "trend",
+    owner: "Priya N.",
+    node: 30,
+  },
+  {
+    noun: "break violations.",
+    loc: "Location #09",
+    detail: "Meal break missed on shift 2",
     bubble: "A break violation just hit Location #09.",
-    tone: "warn" as const,
-    icon: "lock" as const,
-    loc: "Loc #09",
-    detail: "Break violation",
-    pos: { top: "66%", left: "2%" },
+    tone: "crit",
+    icon: "lock",
+    owner: "Sam K.",
+    node: 13,
   },
 ];
 
-const tileTone = {
-  crit: { ring: "border-red-200", bg: "bg-red-50", fg: "text-red-600" },
-  warn: { ring: "border-amber-200", bg: "bg-amber-50", fg: "text-amber-700" },
-} as const;
+const toneTile: Record<Tone, string> = {
+  warn: "bg-amber-400",
+  crit: "bg-red-500",
+};
+const toneChip: Record<Tone, string> = {
+  warn: "border-amber-200 bg-amber-50 text-amber-700",
+  crit: "border-red-200 bg-red-50 text-red-600",
+};
+const toneRing: Record<Tone, string> = {
+  warn: "ring-amber-400/50",
+  crit: "ring-red-500/50",
+};
+
+const NODES = 36;
+const FADE = { duration: 0.5, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] };
 
 export function Hero() {
+  const reduced = useReducedMotion();
+
   const [phase, setPhase] = useState<"intro" | "cycle">("intro");
   const [index, setIndex] = useState(0);
-  const [typed, setTyped] = useState("");
-  // Index 0 on the server (stable for hydration); randomized on the client
-  // right after mount so repeat visits don't always see the same opener.
+  const [routed, setRouted] = useState(false);
+  // Fixed on the server so hydration matches; randomized right after mount
+  // so repeat visits don't always open on the same line.
   const [introIdx, setIntroIdx] = useState(0);
+  const [checks, setChecks] = useState(1247);
+  const [typed, setTyped] = useState("");
 
   useEffect(() => {
     setIntroIdx(Math.floor(Math.random() * introVariants.length));
   }, []);
 
   useEffect(() => {
+    if (reduced) {
+      setPhase("cycle");
+      return;
+    }
     const t = setTimeout(() => setPhase("cycle"), INTRO_MS);
     return () => clearTimeout(t);
-  }, []);
+  }, [reduced]);
 
+  /* One issue at a time: surface it, route it, move on. */
   useEffect(() => {
-    if (phase !== "cycle") return;
-    const int = setInterval(() => {
-      setIndex((i) => (i + 1) % issues.length);
-    }, CYCLE_MS);
-    return () => clearInterval(int);
-  }, [phase]);
+    if (phase !== "cycle" || reduced) return;
+    setRouted(false);
+    const route = setTimeout(() => setRouted(true), ROUTE_AT_MS);
+    const advance = setTimeout(() => setIndex((i) => (i + 1) % issues.length), CYCLE_MS);
+    return () => {
+      clearTimeout(route);
+      clearTimeout(advance);
+    };
+  }, [phase, index, reduced]);
 
-  // Types out the bubble's current line — intro message first, then each
-  // issue's detail line as the cycle rotates.
+  /* The counter that never stops — the cheapest possible proof of "always on". */
   useEffect(() => {
-    const target = phase === "intro" ? INTRO_TEXT : issues[index].bubble;
+    if (reduced) return;
+    const id = setInterval(
+      () => setChecks((c) => c + 1 + Math.floor(Math.random() * 3)),
+      700
+    );
+    return () => clearInterval(id);
+  }, [reduced]);
+
+  const active = issues[index];
+
+  /* Oscar owns the intro, then the stage alternates two beats at a time. */
+  const act: "floor" | "oscar" =
+    phase === "intro" || Math.floor(index / 2) % 2 === 1 ? "oscar" : "floor";
+
+  const bubbleText = phase === "intro" ? INTRO_TEXT : active.bubble;
+
+  /* Types out whatever Oscar is currently saying. */
+  useEffect(() => {
+    if (act !== "oscar") return;
+    if (reduced) {
+      setTyped(bubbleText);
+      return;
+    }
     setTyped("");
     let i = 0;
     const id = setInterval(() => {
       i++;
-      setTyped(target.slice(0, i));
-      if (i >= target.length) clearInterval(id);
-    }, TYPE_SPEED_MS);
+      setTyped(bubbleText.slice(0, i));
+      if (i >= bubbleText.length) clearInterval(id);
+    }, TYPE_MS);
     return () => clearInterval(id);
-  }, [phase, index]);
-
-  const active = issues[index];
+  }, [act, bubbleText, reduced]);
 
   return (
-    <section id="top" className="relative overflow-hidden bg-white pt-28 pb-6 md:pt-32 md:pb-8">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-x-0 top-0 h-[600px] bg-gradient-to-b from-brand-50 to-white" />
-        <div className="absolute inset-0 bg-grid mask-fade-b opacity-40" />
-      </div>
+    <section id="top" className="relative overflow-hidden bg-white pt-28 pb-16 md:pt-32 md:pb-20">
+      <HeroBackdrop />
 
-      <div className="relative mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-10 px-6 md:px-8 lg:grid-cols-[1.08fr_1fr] lg:gap-8">
-        {/* Left */}
+      {/* z-10: HeroBackdrop sits at z-0, above the section background. */}
+      <div className="relative z-10 mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-10 px-6 md:px-8 lg:grid-cols-[1.05fr_1fr]">
+        {/* ---------------- left: the claim ---------------- */}
         <div>
-          {/* No text-balance here: it fights the explicit <br>s and produces
-              ragged lines. The breaks are authored deliberately. */}
           <Reveal>
-            <h1 className="min-h-[3.3em] text-[3rem] font-extrabold leading-[1.0] tracking-[-0.01em] sm:text-[3.8rem] lg:text-[4.6rem] sm:min-h-[3em]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-line bg-white/80 py-1 pl-2 pr-3 text-[12px] font-medium text-slate shadow-e1 backdrop-blur-sm">
+              <span className="relative grid size-4 place-items-center text-emerald-500">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
+                {!reduced && <span className="pulse-ring absolute inset-0" />}
+              </span>
+              Watching 36 locations right now
+            </span>
+          </Reveal>
+
+          {/* No text-balance: the line breaks are authored deliberately. */}
+          <Reveal>
+            <h1 className="mt-5 min-h-[3.15em] text-[2.9rem] font-semibold leading-[1.02] sm:min-h-[2.9em] sm:text-[3.6rem] lg:text-[4.3rem]">
               <AnimatePresence mode="wait">
                 {phase === "intro" ? (
                   <motion.span
-                    key="intro-h1"
+                    key="intro"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0, y: -8 }}
@@ -143,7 +227,7 @@ export function Hero() {
                   </motion.span>
                 ) : (
                   <motion.span
-                    key="cycle-h1"
+                    key="cycle"
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
@@ -154,13 +238,13 @@ export function Hero() {
                     <AnimatePresence mode="wait">
                       <motion.span
                         key={index}
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.35 }}
+                        exit={{ opacity: 0, y: -12 }}
+                        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                         className="block text-brand-600"
                       >
-                        {active.label}
+                        {active.noun}
                       </motion.span>
                     </AnimatePresence>
                   </motion.span>
@@ -171,25 +255,19 @@ export function Hero() {
 
           <Reveal delay={1}>
             <p className="mt-6 max-w-xl text-pretty text-[1.05rem] leading-relaxed text-slate">
-              You can&rsquo;t watch every location at once. Oscar can — and his
-              eyes never close. He catches revenue leaks, labor blowouts, and
-              compliance risks the moment they happen, then tells the right
-              person exactly what to do.
+              You can&rsquo;t watch every location at once. Oscar can — and his eyes
+              never close. He catches revenue leaks, labor blowouts, and compliance
+              risks the moment they happen, then tells the right person exactly what
+              to do.
             </p>
           </Reveal>
 
           <Reveal delay={2}>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <a
-                href={site.links.demo}
-                className="btn-primary rounded-lg px-6 py-3.5 text-[15px]"
-              >
+              <a href={site.links.demo} className="btn-primary rounded-lg px-6 py-3.5 text-[15px]">
                 Request a demo
               </a>
-              <a
-                href="#platform"
-                className="btn-ghost rounded-lg px-6 py-3.5 text-[15px]"
-              >
+              <a href="#command" className="btn-ghost rounded-lg px-6 py-3.5 text-[15px]">
                 See what Oscar catches
                 <Icon name="arrow" width={16} height={16} />
               </a>
@@ -197,70 +275,184 @@ export function Hero() {
           </Reveal>
         </div>
 
-        {/* Right — Oscar, watching. Bottom-aligned + clipped so he reads as
-            craning up into frame rather than floating. */}
-        <div className="relative order-first flex justify-center lg:order-none lg:block">
-          <div className="relative mx-auto w-full max-w-[330px]">
-            <Reveal delay={2}>
-              <OscarMascot className="w-full" />
-            </Reveal>
+        {/* ---------------- right: the stage ---------------- */}
+        <Reveal delay={2}>
+          <div className="relative mx-auto w-full max-w-[440px]">
+            {/* Fixed height: both acts are absolutely positioned inside it, so
+                swapping them can never shove the headline around. */}
+            <div className="relative min-h-[430px] sm:min-h-[450px] lg:min-h-[470px]">
+              <AnimatePresence initial={false}>
+                {act === "floor" ? (
+                  <motion.div
+                    key="floor"
+                    className="absolute inset-0 flex items-center"
+                    initial={{ opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    transition={FADE}
+                  >
+                    <div className="w-full overflow-hidden rounded-xl border border-line bg-white/95 shadow-stage backdrop-blur-sm">
+                      <div className="flex items-center justify-between border-b border-line px-4 py-3">
+                        <span className="flex items-center gap-2">
+                          <span className="grid size-5 place-items-center rounded-md bg-navy text-white">
+                            <Icon name="spark" width={11} height={11} />
+                          </span>
+                          <span className="text-[12.5px] font-semibold tracking-[-0.01em] text-navy">
+                            Oscar is watching
+                          </span>
+                        </span>
+                        <span className="num text-[10.5px] text-muted">
+                          {checks.toLocaleString("en-US")} checks today
+                        </span>
+                      </div>
 
-            {/* Oscar's own chat bubble — introduces himself, then cycles
-                through what he's catching right now. Text types out rather
-                than fading in. */}
-            <div
-              className="pointer-events-none absolute hidden w-[210px] xl:block"
-              style={{ top: "-9%", left: "56%" }}
-            >
-              <div className="relative min-h-[3.6rem] rounded-2xl border border-line bg-white px-4 py-3 shadow-panel">
-                <span className="absolute -bottom-1.5 left-6 size-3 rotate-45 border-b border-r border-line bg-white" />
-                <p className="text-[13px] font-semibold leading-snug text-ink">
-                  {typed}
-                  <span className="ml-0.5 inline-block w-[2px] animate-blink bg-navy align-middle h-[13px]" />
-                </p>
-              </div>
+                      {/* the floor */}
+                      <div className="px-4 pt-4">
+                        <div className="grid grid-cols-9 gap-1.5">
+                          {Array.from({ length: NODES }, (_, i) => {
+                            const isActive = i === active.node;
+                            return (
+                              <span key={i} className="relative aspect-square">
+                                <span
+                                  className={`absolute inset-0 rounded-[3px] transition-all duration-500 ${
+                                    isActive
+                                      ? `${routed ? "bg-emerald-500" : toneTile[active.tone]} scale-125`
+                                      : "bg-brand-300 animate-breathe"
+                                  }`}
+                                  style={
+                                    isActive
+                                      ? undefined
+                                      : {
+                                          animationDelay: `${((i % 9) * 0.19 + Math.floor(i / 9) * 0.31).toFixed(2)}s`,
+                                        }
+                                  }
+                                />
+                                {isActive && !routed && !reduced && (
+                                  <span
+                                    className={`absolute inset-0 rounded-[3px] ring-2 ${toneRing[active.tone]} animate-blink`}
+                                  />
+                                )}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* what just surfaced */}
+                      <div className="min-h-[92px] px-4 pb-4 pt-3.5">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                          >
+                            <div className="flex items-start gap-2.5 rounded-lg border border-line bg-white p-2.5 shadow-e1">
+                              <span
+                                className={`grid size-7 shrink-0 place-items-center rounded-md border ${toneChip[active.tone]}`}
+                              >
+                                <Icon name={active.icon} width={13} height={13} />
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-[12px] font-semibold leading-tight text-navy">
+                                  {active.loc}
+                                </span>
+                                <span className="block truncate text-[11px] leading-tight text-slate">
+                                  {active.detail}
+                                </span>
+                              </span>
+                            </div>
+
+                            {/* the half nobody else does: it gets an owner */}
+                            <motion.div
+                              className="mt-1.5 flex items-center gap-1.5 pl-1"
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: routed ? 1 : 0 }}
+                              transition={{ duration: 0.35 }}
+                            >
+                              <span className="grid size-3.5 place-items-center rounded-full bg-emerald-500 text-white">
+                                <Icon name="check" width={9} height={9} />
+                              </span>
+                              <span className="text-[10.5px] text-slate">
+                                Routed to{" "}
+                                <b className="font-semibold text-navy">{active.owner}</b> —
+                                with the fix attached
+                              </span>
+                            </motion.div>
+                          </motion.div>
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="oscar"
+                    className="absolute inset-0"
+                    initial={{ opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    transition={FADE}
+                  >
+                    {/* Bottom-aligned and scaled about its own base, so he
+                        stands on the floor of the stage at any breakpoint. */}
+                    <div className="absolute bottom-0 left-1/2 origin-bottom -translate-x-1/2 scale-[0.6] sm:scale-[0.64]">
+                      <OscarMascot />
+                    </div>
+
+                    {/* Oscar's bubble — positioned against the stage, not the
+                        mascot, so the scale transform can't drag it around. */}
+                    <div className="absolute left-[48%] top-[2%] w-[215px]">
+                      <div className="relative min-h-[3.4rem] rounded-2xl border border-line bg-white px-4 py-3 shadow-e2">
+                        <span className="absolute -bottom-1.5 left-6 size-3 rotate-45 border-b border-r border-line bg-white" />
+                        <p className="text-[13px] font-medium leading-snug text-ink">
+                          {typed}
+                          {!reduced && (
+                            <span className="ml-0.5 inline-block h-[13px] w-[2px] translate-y-[2px] animate-caret bg-navy align-middle" />
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* the tile for whatever he's currently calling out */}
+                    {phase === "cycle" && (
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={index}
+                          className="absolute left-0 top-[46%]"
+                          initial={{ opacity: 0, y: -12, scale: 0.9, rotate: -4 }}
+                          animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.92 }}
+                          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                        >
+                          <div className="flex items-center gap-2.5 whitespace-nowrap rounded-2xl border border-line bg-white/95 py-2 pl-2 pr-3.5 shadow-e2 backdrop-blur-sm">
+                            <span
+                              className={`grid size-7 shrink-0 place-items-center rounded-full border ${toneChip[active.tone]}`}
+                            >
+                              <Icon name={active.icon} width={13} height={13} />
+                            </span>
+                            <span>
+                              <span className="block text-[11.5px] font-semibold leading-tight text-navy">
+                                {active.loc}
+                              </span>
+                              <span className="block text-[10.5px] leading-tight text-slate">
+                                {active.detail}
+                              </span>
+                            </span>
+                          </div>
+                        </motion.div>
+                      </AnimatePresence>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* the tile matching whatever Oscar's currently catching */}
-            <AnimatePresence mode="wait">
-              {phase === "cycle" && (
-                <motion.div
-                  key={index}
-                  className="pointer-events-none absolute hidden xl:block"
-                  style={active.pos}
-                  initial={{ opacity: 0, y: -14, scale: 0.85, rotate: -4 }}
-                  animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <div className="flex items-center gap-2.5 whitespace-nowrap rounded-2xl border border-line bg-white/95 py-2 pl-2 pr-3.5 shadow-lg shadow-navy/10 backdrop-blur-sm">
-                    <span
-                      className={`grid size-7 shrink-0 place-items-center rounded-full border ${tileTone[active.tone].ring} ${tileTone[active.tone].bg} ${tileTone[active.tone].fg}`}
-                    >
-                      <Icon name={active.icon} width={14} height={14} />
-                    </span>
-                    <span>
-                      <span className="block text-[11.5px] font-extrabold leading-tight text-navy">
-                        {active.loc}
-                      </span>
-                      <span className="block text-[10.5px] font-medium leading-tight text-slate">
-                        {active.detail}
-                      </span>
-                    </span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* the line that lands the idea */}
-          <Reveal delay={4}>
-            <p className="mt-2 text-center text-[13px] font-semibold text-muted">
-              His eyes never close.{" "}
-              <span className="text-brand-600">Move your cursor.</span>
+            <p className="mt-3 text-center text-[11px] text-muted">
+              Live simulation — illustrative locations and figures.
             </p>
-          </Reveal>
-        </div>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

@@ -5,6 +5,7 @@ import { CommandCenter } from "@/components/site/CommandCenter";
 import { HowItWorks } from "@/components/site/HowItWorks";
 import { Metrics } from "@/components/site/Metrics";
 import { Testimonials } from "@/components/site/Testimonials";
+import { Newsroom } from "@/components/site/Newsroom";
 import { Game } from "@/components/site/Game";
 import { Faq } from "@/components/site/Faq";
 import { Footer } from "@/components/site/Footer";
@@ -23,6 +24,7 @@ export default function Home() {
         <Metrics />
         {/* <Industries /> */}
         <Testimonials />
+        <Newsroom />
         <Game />
         <Faq />
         {/* <CTA /> */}

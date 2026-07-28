@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Newsreader } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { site } from "@/lib/site";
 import {
@@ -9,21 +9,23 @@ import {
   websiteLd,
 } from "@/lib/structured-data";
 
-// Jakarta for body/UI — the workhorse face the brand already uses.
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
+// Geist for everything — display and body. A neutral grotesque with tight
+// apertures; it reads as engineered rather than editorial, which is the right
+// register for a data product. Loaded as a variable font (full 100–900 axis),
+// so weight changes cost no extra bytes.
+const geist = Geist({
+  variable: "--font-geist",
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
 });
 
-// Newsreader for headings only — an editorial serif for display type,
-// paired with Jakarta for everything else (see --font-display in globals.css).
-const newsreader = Newsreader({
-  variable: "--font-newsreader",
+// Geist Mono carries every numeral in the product mocks. Monospaced figures
+// are what make a dashboard read as an instrument rather than a web page:
+// columns align, and digits don't jitter while a value counts up.
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
-  weight: ["500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -96,7 +98,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${jakarta.variable} ${newsreader.variable} antialiased`}
+      className={`${geist.variable} ${geistMono.variable} antialiased`}
     >
       <body className="min-h-dvh bg-paper text-ink">
         {/* JSON-LD structured data (first-party, trusted). Placed in body

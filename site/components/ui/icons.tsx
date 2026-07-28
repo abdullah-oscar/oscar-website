@@ -97,6 +97,26 @@ export const Icons = {
       <path d="M5 12.5 10 17l9-10" />
     </svg>
   ),
+  external: (p: IconProps) => (
+    <svg {...base} {...p}>
+      <path d="M14 4h6v6" />
+      <path d="M20 4 11 13" />
+      <path d="M18 14.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4.5" />
+    </svg>
+  ),
+  mail: (p: IconProps) => (
+    <svg {...base} {...p}>
+      <rect x="3" y="5.5" width="18" height="13" rx="2" />
+      <path d="m3.5 7 8.5 6 8.5-6" />
+    </svg>
+  ),
+  download: (p: IconProps) => (
+    <svg {...base} {...p}>
+      <path d="M12 3.5v11" />
+      <path d="m8 10.5 4 4 4-4" />
+      <path d="M4.5 18.5v1a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1v-1" />
+    </svg>
+  ),
   plus: (p: IconProps) => (
     <svg {...base} {...p}>
       <path d="M12 5v14M5 12h14" />
@@ -105,6 +125,19 @@ export const Icons = {
   play: (p: IconProps) => (
     <svg {...base} {...p} fill="currentColor" stroke="none">
       <path d="M8 5.5v13l11-6.5-11-6.5Z" />
+    </svg>
+  ),
+  pause: (p: IconProps) => (
+    <svg {...base} {...p} fill="currentColor" stroke="none">
+      <path d="M7.5 5h3.2v14H7.5V5ZM13.3 5h3.2v14h-3.2V5Z" />
+    </svg>
+  ),
+  grid: (p: IconProps) => (
+    <svg {...base} {...p}>
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.6" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="1.6" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.6" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="1.6" />
     </svg>
   ),
   spark: (p: IconProps) => (

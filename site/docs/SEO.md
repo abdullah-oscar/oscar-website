@@ -65,7 +65,7 @@ maintain — edit the JSX to restyle.
 - **Fonts self-hosted** via `next/font` → no render-blocking Google requests,
   `display: swap`, zero layout shift.
 - **Server Components by default**; only genuinely interactive pieces
-  (`Nav`, `LiveDashboard`, `Watchtower`, `Metrics`, `Game`, `Faq`) are client
+  (`Nav`, `AppFilm`, `Watchtower`, `Metrics`, `Game`, `Faq`) are client
   components, keeping JS minimal.
 - **No external images/CDNs** — brand marks are text/SVG, so nothing blocks LCP
   and there are no third-party requests.

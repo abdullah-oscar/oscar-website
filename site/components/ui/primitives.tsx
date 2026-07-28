@@ -65,7 +65,7 @@ export function SectionHeading({
       )}
       <Reveal delay={1}>
         <h2
-          className={`text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl md:text-[3.4rem] ${
+          className={`text-balance text-4xl font-semibold leading-[1.05] sm:text-5xl md:text-[3.4rem] ${
             tone === "light" ? "!text-white" : ""
           }`}
         >

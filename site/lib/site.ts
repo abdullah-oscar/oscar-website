@@ -28,12 +28,23 @@ export const site = {
   },
 } as const;
 
+/**
+ * Primary nav.
+ *
+ * Root-relative anchors (`/#how`, not `#how`) so these resolve from
+ * standalone routes like /newsroom, not just the homepage.
+ *
+ * "Platform" points at #command (the product film) and "Industries" was
+ * dropped: both previously targeted #platform / #industries, which are the
+ * commented-out <Features /> and <Industries /> sections — dead links on the
+ * live page. Restore them here if those sections come back.
+ */
 export const nav = [
-  { label: "Platform", href: "#platform" },
-  { label: "How it works", href: "#how" },
-  { label: "Industries", href: "#industries" },
-  { label: "Customers", href: "#customers" },
-  { label: "Play", href: "#game" },
+  { label: "Platform", href: "/#command" },
+  { label: "How it works", href: "/#how" },
+  { label: "Customers", href: "/#customers" },
+  { label: "Newsroom", href: "/newsroom" },
+  { label: "Play", href: "/#game" },
 ] as const;
 
 /** Hero headline trust stats. */

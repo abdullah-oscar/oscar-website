@@ -14,7 +14,7 @@ export function HowItWorks() {
               <span className="kicker text-brand-600">How it works</span>
             </Reveal>
             <Reveal delay={1}>
-              <h2 className="mt-4 text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl md:text-[3.3rem]">
+              <h2 className="mt-4 text-balance text-4xl font-semibold leading-[1.05]sm:text-5xl md:text-[3.3rem]">
                 Up and running in{" "}
                 <span className="text-brand-600">days, not months</span>
               </h2>

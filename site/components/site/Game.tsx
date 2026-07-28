@@ -229,7 +229,7 @@ export function Game() {
             <span className="kicker text-brand-600">Playable demo</span>
           </Reveal>
           <Reveal delay={1}>
-            <h2 className="mt-4 text-balance text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl md:text-[3.4rem]">
+            <h2 className="mt-4 text-balance text-4xl font-semibold leading-[1.05] sm:text-5xl md:text-[3.4rem]">
               You&rsquo;re the District Manager.{" "}
               <span className="text-brand-600">Can you keep up?</span>
             </h2>

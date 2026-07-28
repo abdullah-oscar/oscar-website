@@ -60,7 +60,9 @@ needed).
 These have data co-located in their components (they're behavioral, not just
 copy):
 
-- **Hero dashboard** — `components/site/LiveDashboard.tsx` (`bars`, `feedSource`).
+- **Product film** — `components/site/showcase/`. `AppFilm.tsx` owns the scene
+  list, beat lengths (`ms`) and chapter labels; `scenes.tsx` holds the invented
+  figures for each scene, co-located with the scene that renders them.
 - **Watchtower** — `components/site/Watchtower.tsx` (`nodes`, `kinds`).
 - **District Manager game** — `components/site/Game.tsx` (`ALERTS`, plus scoring
   constants in `start`/`answer`).

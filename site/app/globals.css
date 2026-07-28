@@ -3,10 +3,14 @@
 /* ============================================================
    OSCAR AI — DESIGN SYSTEM
    ------------------------------------------------------------
-   Palette + type are taken directly from the live oscar.ai site
-   and the in-house v3 HTML: a light, white, trustworthy surface,
-   Oscar blue (#35b8ff) as the accent, and deep navy used
-   sparingly for emphasis bands (Why Oscar, footer).
+   Oscar blue (#35b8ff) on a cool, near-white surface, with navy
+   reserved for emphasis bands (nav, footer). Type is Geist for
+   everything and Geist Mono for every numeral.
+
+   The neutrals are deliberately cool (blue undertone) rather than
+   the warm paper this site used to run on: a warm cream fights the
+   brand cyan and makes it read as a stray accent, where a cool
+   ground lets the same blue read as the system's own color.
    Rationale in /docs/DESIGN.md
    ============================================================ */
 
@@ -27,32 +31,40 @@
   --color-navy-600: #0c2d50;
   --color-navy-400: #163f68;
 
-  /* — Neutrals — warmed slightly off cool blue-white so the brand blue
-     reads as a deliberate accent rather than the page's ambient hue — */
+  /* — Neutrals — cool, blue-undertoned near-whites — */
   --color-paper: #ffffff;
-  --color-mist: #f8f6f2;  /* bg-soft */
-  --color-line: #e8e2d8;  /* border  */
-  --color-line-2: #d9d0bf;
+  --color-mist: #f5f8fb;   /* bg-soft   */
+  --color-mist-2: #eef4f9; /* bg-sunken */
+  --color-line: #e4ebf3;   /* border    */
+  --color-line-2: #ccd9e5;
 
   /* — Text — */
-  --color-ink: #1a2b3c;   /* text      */
-  --color-slate: #4a6375; /* text-mid  */
-  --color-muted: #7a95a8; /* text-light */
+  --color-ink: #0f2438;   /* text      */
+  --color-slate: #47637a; /* text-mid  */
+  --color-muted: #7d95aa; /* text-light */
 
   /* — Signal colors (dashboards) — */
   --color-signal-ok: #16a34a;
   --color-signal-warn: #f59e0b;
   --color-signal-crit: #dc2626;
 
-  /* — Type: Jakarta for body/UI, Newsreader (editorial serif) for
-     headings only — see the h1–h4 rule below — */
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  /* — Type: Geist throughout; Geist Mono for numerals — */
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
 
   /* — Radii — */
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+
+  /* — Elevation — cool-tinted so shadows sit in the same light as
+     the neutrals instead of greying them out — */
+  --shadow-e1: 0 1px 2px rgba(12, 44, 72, 0.06), 0 1px 3px rgba(12, 44, 72, 0.04);
+  --shadow-e2: 0 2px 4px rgba(12, 44, 72, 0.05), 0 6px 16px -6px rgba(12, 44, 72, 0.10);
+  --shadow-e3: 0 4px 10px -2px rgba(12, 44, 72, 0.07), 0 18px 40px -12px rgba(12, 44, 72, 0.16);
+  --shadow-e4: 0 8px 20px -4px rgba(12, 44, 72, 0.08), 0 44px 88px -28px rgba(12, 44, 72, 0.26);
 
   /* — Easings — */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -65,6 +77,11 @@
   --animate-pulse-ring: pulse-ring 2.4s var(--ease-out-expo) infinite;
   --animate-blink: blink 2s ease-in-out infinite;
   --animate-shake: shake 0.4s ease-in-out 1;
+  --animate-caret: caret 1s steps(2) infinite;
+  --animate-drift: drift 14s ease-in-out infinite;
+  --animate-breathe: breathe 3.6s ease-in-out infinite;
+  --animate-scan: scan 9s ease-in-out infinite;
+  --animate-twinkle: twinkle 4s ease-in-out infinite;
 }
 
 @keyframes marquee {
@@ -84,11 +101,43 @@
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.3; }
 }
+@keyframes caret {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
 @keyframes shake {
   10%, 90% { transform: translateX(-1px); }
   20%, 80% { transform: translateX(2px); }
   30%, 50%, 70% { transform: translateX(-4px); }
   40%, 60% { transform: translateX(4px); }
+}
+/* Idle pulse for the hero's location grid. Staggered per tile via inline
+   animation-delay, so 36 nodes read as a system with a pulse rather than
+   36 things blinking in lockstep. CSS, not Motion — 36 animated React
+   components in the hero is not a trade worth making. */
+@keyframes breathe {
+  0%, 100% { opacity: 0.30; }
+  50%      { opacity: 0.75; }
+}
+/* A soft band of light crossing the hero — reads as "something is
+   scanning this" without a single literal radar sweep. */
+@keyframes scan {
+  0%   { transform: translate3d(-70%, 0, 0) skewX(-12deg); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translate3d(170%, 0, 0) skewX(-12deg); opacity: 0; }
+}
+/* Constellation nodes coming in and out of focus. */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.18; }
+  50%      { opacity: 0.55; }
+}
+/* Slow parallax wander for the aurora blooms — keeps a static hero
+   from feeling like a screenshot without ever pulling focus. */
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33%      { transform: translate3d(2%, -3%, 0) scale(1.06); }
+  66%      { transform: translate3d(-2%, 2%, 0) scale(0.97); }
 }
 
 /* ============================================================
@@ -123,12 +172,16 @@ body {
   border-radius: 4px;
 }
 
+/* A grotesque needs real negative tracking at display sizes — without it
+   Geist reads loose and generic at 3rem+. The old serif wanted the
+   opposite, which is why this value flipped. */
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   color: var(--color-navy);
-  letter-spacing: -0.01em; /* serifs need less negative tracking than the old sans did */
+  letter-spacing: -0.032em;
   text-wrap: balance;
 }
+h1 { letter-spacing: -0.04em; }
 
 ::-webkit-scrollbar { width: 11px; height: 11px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -146,12 +199,20 @@ h1, h2, h3, h4 {
   /* Kicker / eyebrow — plain sans, not mono (matches brand) */
   .kicker {
     font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
+    font-weight: 600;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
   }
 
   .tnum { font-variant-numeric: tabular-nums; }
+
+  /* Every figure in a product surface: mono, tabular, tightened.
+     Columns line up and counting digits stop jittering. */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
 
   /* Buttons — flat brand blue, like the live site */
   .btn-primary {
@@ -161,10 +222,16 @@ h1, h2, h3, h4 {
     gap: 0.5rem;
     background: var(--color-brand-500);
     color: #fff;
-    font-weight: 700;
-    transition: background 0.18s, transform 0.18s var(--ease-out-expo);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    box-shadow: var(--shadow-e1);
+    transition: background 0.18s, transform 0.18s var(--ease-out-expo), box-shadow 0.18s;
   }
-  .btn-primary:hover { background: var(--color-brand-600); transform: translateY(-1px); }
+  .btn-primary:hover {
+    background: var(--color-brand-600);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-e2);
+  }
   .btn-primary:active { transform: translateY(0); }
 
   .btn-navy {
@@ -174,36 +241,57 @@ h1, h2, h3, h4 {
     gap: 0.5rem;
     background: var(--color-navy);
     color: #fff;
-    font-weight: 700;
-    transition: background 0.18s, transform 0.18s var(--ease-out-expo);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    box-shadow: var(--shadow-e1);
+    transition: background 0.18s, transform 0.18s var(--ease-out-expo), box-shadow 0.18s;
   }
-  .btn-navy:hover { background: var(--color-navy-600); transform: translateY(-1px); }
+  .btn-navy:hover {
+    background: var(--color-navy-600);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-e2);
+  }
 
   .btn-ghost {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border: 1.5px solid var(--color-line);
+    border: 1px solid var(--color-line);
     background: #fff;
     color: var(--color-ink);
-    font-weight: 600;
-    transition: border-color 0.2s, color 0.2s, transform 0.18s;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    box-shadow: var(--shadow-e1);
+    transition: border-color 0.2s, color 0.2s, transform 0.18s, box-shadow 0.18s;
   }
-  .btn-ghost:hover { border-color: var(--color-brand-500); color: var(--color-brand-600); transform: translateY(-1px); }
+  .btn-ghost:hover {
+    border-color: var(--color-brand-300);
+    color: var(--color-brand-700);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-e2);
+  }
 
   /* Cards */
   .card-lift { transition: transform 0.25s var(--ease-out-expo), box-shadow 0.25s, border-color 0.25s; }
   .card-lift:hover {
     transform: translateY(-3px);
-    border-color: var(--color-brand-500);
-    box-shadow: 0 12px 32px -18px rgba(0, 90, 150, 0.4);
+    border-color: var(--color-brand-300);
+    box-shadow: var(--shadow-e3);
   }
 
-  .shadow-panel {
-    box-shadow:
-      0 4px 12px rgba(0, 80, 140, 0.07),
-      0 20px 48px -16px rgba(0, 80, 140, 0.13);
+  .shadow-panel { box-shadow: var(--shadow-e3); }
+  /* The showcase frame only — a deep, wide, low-opacity cast so the app
+     window looks like it's floating well above the page. */
+  .shadow-stage { box-shadow: var(--shadow-e4); }
+
+  /* Soft cyan bloom. Layered radial gradients rather than a linear wash,
+     so the color pools in corners instead of banding across the section. */
+  .bg-aurora {
+    background:
+      radial-gradient(58% 48% at 12% 4%,  color-mix(in oklab, var(--color-brand-400) 24%, transparent), transparent 68%),
+      radial-gradient(46% 42% at 88% 12%, color-mix(in oklab, var(--color-brand-300) 26%, transparent), transparent 70%),
+      radial-gradient(72% 58% at 50% 104%, color-mix(in oklab, var(--color-brand-200) 34%, transparent), transparent 74%);
   }
 
   /* Subtle grid, used lightly behind the hero */
@@ -213,6 +301,14 @@ h1, h2, h3, h4 {
       linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
     background-size: 64px 64px;
   }
+  /* Finer grid for product surfaces */
+  .bg-grid-fine {
+    background-image:
+      linear-gradient(to right, var(--color-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
   .mask-fade-b {
     -webkit-mask-image: linear-gradient(to bottom, #000, transparent);
     mask-image: linear-gradient(to bottom, #000, transparent);
@@ -221,12 +317,21 @@ h1, h2, h3, h4 {
     -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
     mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
   }
+  .mask-radial {
+    -webkit-mask-image: radial-gradient(70% 60% at 50% 40%, #000, transparent);
+    mask-image: radial-gradient(70% 60% at 50% 40%, #000, transparent);
+  }
 
   .animate-marquee { animation: var(--animate-marquee); }
   .animate-float { animation: var(--animate-float); }
   .animate-float-slow { animation: var(--animate-float-slow); }
   .animate-blink { animation: var(--animate-blink); }
   .animate-shake { animation: var(--animate-shake); }
+  .animate-caret { animation: var(--animate-caret); }
+  .animate-drift { animation: var(--animate-drift); }
+  .animate-breathe { animation: var(--animate-breathe); }
+  .animate-scan { animation: var(--animate-scan); }
+  .animate-twinkle { animation: var(--animate-twinkle); }
 
   .pulse-ring::after {
     content: "";

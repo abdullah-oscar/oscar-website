@@ -34,8 +34,20 @@ AI template.
 
 ### Neutrals & text
 
-`paper #fff` · `mist #f7fbfe` (soft band) · `line #e2edf4` (borders).
-Text: `navy` (headings) → `ink #1a2b3c` → `slate #4a6375` → `muted #7a95a8`.
+`paper #fff` · `mist #f5f8fb` (soft band) · `mist-2 #eef4f9` (sunken) ·
+`line #e4ebf3` (borders) · `line-2 #ccd9e5`.
+Text: `navy` (headings) → `ink #0f2438` → `slate #47637a` → `muted #7d95aa`.
+
+The neutrals carry a deliberate **blue undertone**. An earlier pass ran them
+warm (`mist #f8f6f2`, `line #e8e2d8`) to pair with a serif; that ground fought
+the brand cyan and made it read as a stray accent. On a cool ground the same
+`#35b8ff` reads as the system's own color.
+
+### Elevation
+
+`shadow-e1` → `shadow-e4`, plus `shadow-stage` for the product frame. All are
+tinted `rgba(12,44,72,…)` rather than neutral black, so a shadow sits in the
+same light as the surface instead of greying it out.
 
 ### Signal palette
 
@@ -46,17 +58,29 @@ Reused anywhere data appears so dashboards read as one system.
 
 ## Typography
 
-**One family: Plus Jakarta Sans** — the same face the brand already uses in its
-own HTML. Self-hosted via `next/font` (no layout shift, no Google requests).
+**Geist for everything, Geist Mono for every numeral.** Both self-hosted via
+`next/font` as variable fonts (no layout shift, no Google requests, and weight
+changes cost no extra bytes).
 
-- Headings: 700–800, tight tracking (`-0.03em`), balanced wrapping.
+- Headings: **600**, tracking `-0.032em` (`-0.04em` at h1), balanced wrapping.
 - Body: 400–500, `text-slate`.
-- Kickers: uppercase, 700, `0.1em` tracking — **plain sans, not monospace.**
-- Numbers: `.tnum` (tabular figures) so dashboard values don't jitter.
+- Kickers: uppercase, 600, `0.14em` tracking — **plain sans, not monospace.**
+- Numbers: `.num` (Geist Mono + tabular + `-0.02em`) everywhere a figure appears
+  in a product surface. `.tnum` remains for tabular figures in body copy.
 
-> Earlier drafts used a display face (Bricolage) + a mono for data. Both were
-> dropped: together they read as generic "AI startup" rather than Oscar. One
-> honest brand family is stronger.
+Two rules worth keeping:
+
+**Grotesques need negative tracking at display sizes.** Geist set loose at 3rem+
+reads generic. The base rule handles this — don't re-add `tracking-tight` to
+headings, it is looser than the base and will fight it.
+
+**Weight 600, not 800.** The heavy end of Geist at display sizes reads shouty
+rather than confident.
+
+> History: the site ran Plus Jakarta Sans + a Newsreader serif for headings
+> before this. The serif was doing the work of feeling "premium" while making
+> the product surfaces — which are fundamentally tables of numbers — read as an
+> editorial site rather than software. Mono numerals do that job better.
 
 ## Section rhythm
 
