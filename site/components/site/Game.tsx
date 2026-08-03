@@ -316,7 +316,7 @@ export function Game() {
                         className="h-24 w-24 object-contain"
                       />
                       <div className="mt-4 text-xl font-extrabold text-navy">
-                        34 locations need you
+                        36 locations need you
                       </div>
                       <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate">
                         Alerts appear below. Pick the right action before time

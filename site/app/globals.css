@@ -79,9 +79,14 @@
   --animate-shake: shake 0.4s ease-in-out 1;
   --animate-caret: caret 1s steps(2) infinite;
   --animate-drift: drift 14s ease-in-out infinite;
+  --animate-drift-slow: drift 26s ease-in-out infinite reverse;
   --animate-breathe: breathe 3.6s ease-in-out infinite;
-  --animate-scan: scan 9s ease-in-out infinite;
-  --animate-twinkle: twinkle 4s ease-in-out infinite;
+  --animate-feed: feed 2.7s ease-in-out infinite;
+  --animate-flow: flow 1.2s linear infinite;
+  --animate-flow-dot: flow-dot 1.8s ease-in-out infinite;
+  --animate-sweep: sweep 4.5s linear infinite;
+  --animate-engine-pulse: engine-pulse 2.4s var(--ease-out-expo) infinite;
+  --animate-row-flash: row-flash 7s ease-in-out infinite;
 }
 
 @keyframes marquee {
@@ -119,21 +124,48 @@
   0%, 100% { opacity: 0.30; }
   50%      { opacity: 0.75; }
 }
-/* A soft band of light crossing the hero — reads as "something is
-   scanning this" without a single literal radar sweep. */
-@keyframes scan {
-  0%   { transform: translate3d(-70%, 0, 0) skewX(-12deg); opacity: 0; }
-  15%  { opacity: 1; }
-  85%  { opacity: 1; }
-  100% { transform: translate3d(170%, 0, 0) skewX(-12deg); opacity: 0; }
+/* ---- Pipeline "engine" loops (components/site/PipelineVisual.tsx).
+   All continuous, all CSS: the reduced-motion rule below snaps each one
+   to a resting state that still reads correctly. ---- */
+/* One source chip "fires" at a time as data feeds the engine. */
+@keyframes feed {
+  0%, 12%, 100% { border-color: var(--color-line); background: var(--color-mist); transform: translateY(0); }
+  6% { border-color: var(--color-brand-300); background: var(--color-brand-100); transform: translateY(-1px); }
 }
-/* Constellation nodes coming in and out of focus. */
-@keyframes twinkle {
-  0%, 100% { opacity: 0.18; }
-  50%      { opacity: 0.55; }
+/* Connector dashes stream toward the next stage. The dash period is
+   8px (3 on, 5 off), so any multiple of 8 loops seamlessly. */
+@keyframes flow {
+  to { stroke-dashoffset: -16; }
 }
-/* Slow parallax wander for the aurora blooms — keeps a static hero
-   from feeling like a screenshot without ever pulling focus. */
+/* A packet riding the connector; starts and ends invisible so the
+   reduced-motion snap leaves no stray dot. */
+@keyframes flow-dot {
+  0%   { transform: translateY(0); opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(19px); opacity: 0; }
+}
+/* The engine's radar beam. Animates the standalone `rotate` property so
+   it composes with the translate utilities centering the beam element. */
+@keyframes sweep {
+  from { rotate: 0deg; }
+  to   { rotate: 360deg; }
+}
+@keyframes engine-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-brand-400) 40%, transparent); }
+  70%, 100% { box-shadow: 0 0 0 9px transparent; }
+}
+/* A pass of light over one output row at a time — items "arriving". */
+@keyframes row-flash {
+  0%   { transform: translateX(-120%); opacity: 0; }
+  4%   { opacity: 1; }
+  14%  { transform: translateX(320%); opacity: 0; }
+  100% { transform: translateX(320%); opacity: 0; }
+}
+/* Slow parallax wander for the backdrop blooms — keeps a static hero
+   from feeling like a screenshot without ever pulling focus. drift-slow
+   runs the same path reversed at ~2x the period, so two mesh layers
+   wander against each other. */
 @keyframes drift {
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
   33%      { transform: translate3d(2%, -3%, 0) scale(1.06); }
@@ -294,6 +326,39 @@ h1 { letter-spacing: -0.04em; }
       radial-gradient(72% 58% at 50% 104%, color-mix(in oklab, var(--color-brand-200) 34%, transparent), transparent 74%);
   }
 
+  /* Hero mesh — two bloom layers meant to be stacked and drifted against
+     each other (A on drift, B on drift-slow). Wide gradient falloff does
+     the softening: no filter: blur() on viewport-sized layers, it's a
+     GPU tax that wide transparent stops pay for free. */
+  .bg-mesh-a {
+    background:
+      radial-gradient(52% 44% at 14% 6%,  color-mix(in oklab, var(--color-brand-300) 22%, transparent), transparent 72%),
+      radial-gradient(60% 52% at 78% 0%,  color-mix(in oklab, var(--color-brand-200) 18%, transparent), transparent 74%),
+      radial-gradient(40% 36% at 50% 30%, color-mix(in oklab, var(--color-brand-100) 30%, transparent), transparent 70%);
+  }
+  .bg-mesh-b {
+    background:
+      radial-gradient(48% 42% at 36% 22%, color-mix(in oklab, var(--color-brand-200) 12%, transparent), transparent 72%),
+      radial-gradient(56% 48% at 72% 52%, color-mix(in oklab, var(--color-brand-400) 10%, transparent), transparent 74%),
+      radial-gradient(44% 40% at 92% 10%, color-mix(in oklab, var(--color-navy-400) 8%, transparent), transparent 70%);
+  }
+
+  /* One wide static ellipse of light low in the hero — the backdrop's
+     single light source, replacing the old scan sweep. */
+  .bg-horizon {
+    background: radial-gradient(90% 42% at 50% 96%, color-mix(in oklab, var(--color-brand-300) 22%, transparent), transparent 72%);
+  }
+
+  /* SVG turbulence tiled small and blended overlay: enough texture that
+     the mesh gradients stop reading as flat CSS, faint enough that no
+     one ever sees "noise". A constant data-URI, so hydration-safe. */
+  .bg-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+    opacity: 0.035;
+    mix-blend-mode: overlay;
+  }
+
   /* Subtle grid, used lightly behind the hero */
   .bg-grid {
     background-image:
@@ -329,9 +394,14 @@ h1 { letter-spacing: -0.04em; }
   .animate-shake { animation: var(--animate-shake); }
   .animate-caret { animation: var(--animate-caret); }
   .animate-drift { animation: var(--animate-drift); }
+  .animate-drift-slow { animation: var(--animate-drift-slow); }
   .animate-breathe { animation: var(--animate-breathe); }
-  .animate-scan { animation: var(--animate-scan); }
-  .animate-twinkle { animation: var(--animate-twinkle); }
+  .animate-feed { animation: var(--animate-feed); }
+  .animate-flow { animation: var(--animate-flow); }
+  .animate-flow-dot { animation: var(--animate-flow-dot); }
+  .animate-sweep { animation: var(--animate-sweep); }
+  .animate-engine-pulse { animation: var(--animate-engine-pulse); }
+  .animate-row-flash { animation: var(--animate-row-flash); }
 
   .pulse-ring::after {
     content: "";

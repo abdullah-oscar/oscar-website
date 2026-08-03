@@ -15,7 +15,7 @@ export const site = {
     "Oscar is an AI operations analyst that watches every location 24/7 — catching revenue leaks, labor inefficiencies, and compliance risks, then delivering the alerts, reports, and action plans your team needs to fix them fast.",
   // Short blurb for cards / OG.
   ogDescription:
-    "AI that watches every location 24/7 — catching revenue leaks, labor risks, and compliance issues before they cost you. Live in days, not months.",
+    "AI that watches every location 24/7 — catching revenue leaks, labor risks, and compliance issues before they cost you. Live in 30 days, not months.",
   founded: "2021",
   links: {
     demo: "https://meetings.hubspot.com/kelemen/marketing-site-scheduling-link",
@@ -26,6 +26,20 @@ export const site = {
     privacy:
       "https://docs.google.com/document/d/1I7312L34R5zmTwjXVJVK9BbQZnflDtQSk5H_E2VT74Y/edit",
   },
+} as const;
+
+/**
+ * Company stats — the single source of truth for every figure quoted on
+ * the site. Update here and every section, FAQ, and JSON-LD block that
+ * references them stays in sync.
+ */
+export const stats = {
+  /** TODO(barry): confirm the exact live location count before launch. */
+  locations: 1536, // render via .toLocaleString("en-US") → "1,536"
+  brands: 18,
+  goLiveDays: 30,
+  /** TODO(barry): confirm the provider count once the integrations list is final. */
+  integrations: 50, // rendered as "50+"
 } as const;
 
 /**
@@ -42,9 +56,11 @@ export const site = {
 export const nav = [
   { label: "Platform", href: "/#command" },
   { label: "How it works", href: "/#how" },
+  // { label: "Results", href: "/#results" },  ← restore with <Results />
   { label: "Customers", href: "/#customers" },
+  { label: "About", href: "/about" },
   { label: "Newsroom", href: "/newsroom" },
-  { label: "Play", href: "/#game" },
+  // { label: "Play", href: "/#game" },        ← restore with <Game />
 ] as const;
 
 /** Hero headline trust stats. */
@@ -157,7 +173,7 @@ export const valueProps: ValueProp[] = [
   {
     n: "04",
     title: "Fits your existing stack",
-    desc: "No rip-and-replace. Oscar connects to your current systems and adapts to your workflows. Most teams are live in days.",
+    desc: "No rip-and-replace. Oscar connects to your current systems and adapts to your workflows. Most teams are live in about 30 days.",
   },
 ];
 
@@ -200,7 +216,7 @@ export const metrics: Metric[] = [
   { value: "24", suffix: "/7", label: "Every location, always watched" },
   { value: "95", suffix: "%", label: "Reduction in manual reporting" },
   { value: "1000", suffix: "s", label: "Workflows automated" },
-  { value: "3", suffix: "-day", label: "Typical time to go live" },
+  { value: "30", suffix: "-day", label: "Typical time to go live" },
 ];
 
 export type Testimonial = {
@@ -259,6 +275,25 @@ export const testimonials: Testimonial[] = [
     initials: "LP",
     sample: true,
   },
+  /* TODO(barry): the slots below are formatted the way we want the real
+     quotes to land — full name + titled role at a named franchisee org.
+     Swap in the real quote, name, and role, then drop `sample: true`. */
+  {
+    quote:
+      "Placeholder — a quote about a specific dollar amount or hours-per-week Oscar saved this operator, in their own words.",
+    name: "Firstname Lastname",
+    role: "VP of Operations, [Brand] Franchisee",
+    initials: "FL",
+    sample: true,
+  },
+  {
+    quote:
+      "Placeholder — a quote from a district leader about the daily brief: what it catches, and what their mornings look like now.",
+    name: "Firstname Lastname",
+    role: "District Leader, [Franchisee organization]",
+    initials: "FL",
+    sample: true,
+  },
 ];
 
 export type Faq = { q: string; a: string };
@@ -270,7 +305,7 @@ export const faqs: Faq[] = [
   },
   {
     q: "How long does it take to get started?",
-    a: "Most teams are live in days, not months. Oscar connects to the systems you already use — spreadsheets, PDFs, APIs, SFTPs, or direct database connections — so there's no rip-and-replace and no long IT project.",
+    a: `Most teams are live in about ${stats.goLiveDays} days, not months. Oscar connects to the systems you already use — spreadsheets, PDFs, APIs, SFTPs, or direct database connections — so there's no rip-and-replace and no long IT project.`,
   },
   {
     q: "Do I need to replace my current systems?",
@@ -288,4 +323,154 @@ export const faqs: Faq[] = [
     q: "Is my data secure?",
     a: "Yes. Oscar is SOC 2 compliant, with security and access controls designed for enterprise multi-location operators.",
   },
+  {
+    q: "What systems does Oscar integrate with?",
+    a: `Oscar already integrates with ${stats.integrations}+ providers across POS, payroll, and back-office systems — plus spreadsheets, PDFs, SFTPs, and direct database connections. If your data lives somewhere, Oscar can almost certainly read it, and connecting a new source is our work, not yours.`,
+  },
+  {
+    q: "Do I need to hire analysts or add staff to use Oscar?",
+    a: "No additional staffing required — Oscar is the analyst. It does the watching, reconciling, and reporting your team would otherwise do by hand, and delivers finished alerts and action plans to the people you already have.",
+  },
 ];
+
+/* ================================================================
+   Results / use cases
+   ================================================================ */
+
+export type UseCaseCategory =
+  | "Sales & Revenue"
+  | "Labor"
+  | "Voids & Fraud"
+  | "Product Availability"
+  | "Customer Experience";
+
+export type UseCase = {
+  category: UseCaseCategory;
+  icon: string; // key in components/ui/icons.tsx
+  stat: string;
+  statLabel: string;
+  desc: string;
+  featured?: boolean;
+  /** Claimed by the team but not yet substantiated — renders a visible
+   *  "Pending verification" chip until the supporting detail lands. */
+  unverified?: boolean;
+};
+
+/* TODO(barry): the three unverified stats below come from the sell-in
+   deck. Once the supporting detail is confirmed, drop the flag. A Labor
+   and a Product Availability case are still wanted to round out the five
+   categories — add them here and they render automatically. */
+export const useCases: UseCase[] = [
+  {
+    category: "Voids & Fraud",
+    icon: "shield",
+    stat: "$10,000",
+    statLabel: "back per year",
+    desc: "A Burger King franchisee used Oscar's void and discount monitoring to catch comp-abuse and override patterns its POS reports never surfaced — worth $10,000 a year straight back to the bottom line.",
+    featured: true,
+  },
+  {
+    category: "Customer Experience",
+    icon: "clock",
+    stat: "26s",
+    statLabel: "faster speed of service",
+    desc: "Drive-thru times fell once Oscar flagged the day-parts and stations dragging the average.",
+    unverified: true,
+  },
+  {
+    category: "Sales & Revenue",
+    icon: "trend",
+    stat: "+2ppt",
+    statLabel: "gross profit",
+    desc: "Margin recovered by catching leaks — voids, waste, missed price changes — as they happen.",
+    unverified: true,
+  },
+  {
+    category: "Customer Experience",
+    icon: "spark",
+    stat: "+0.5%",
+    statLabel: "brand score",
+    desc: "Standards flags reached the right GM while there was still time to fix them.",
+    unverified: true,
+  },
+];
+
+/* ================================================================
+   Daily briefs — "Same data. Same morning. Three different actions."
+   Illustrative messages in the same simulated 36-store universe as the
+   hero and the product film; the section carries its own disclaimer.
+   ================================================================ */
+
+export type DailyBrief = {
+  role: string;
+  name: string;
+  initials: string;
+  time: string;
+  metric: string;
+  metricLabel: string;
+  actions: [string, string];
+  callout: string;
+  tone: "warn" | "info" | "ok";
+};
+
+export const dailyBriefs: DailyBrief[] = [
+  {
+    role: "District Leader",
+    name: "Dana",
+    initials: "DL",
+    time: "7:02 AM",
+    metric: "3.1%",
+    metricLabel: "void rate at Loc #14 — norm is 0.8%",
+    actions: [
+      "Review last night's void log with the closing manager",
+      "Compare against the district's 90-day pattern — attached",
+    ],
+    callout: "Alert → needs a decision today",
+    tone: "warn",
+  },
+  {
+    role: "General Manager",
+    name: "Marcus",
+    initials: "GM",
+    time: "7:02 AM",
+    metric: "86%",
+    metricLabel: "prep completion before open — 2 items short",
+    actions: [
+      "Move one prep shift 30 minutes earlier on Fri–Sat",
+      "Confirm the walk-in thermometer swap logged last night",
+    ],
+    callout: "Action plan → two steps, 15 minutes",
+    tone: "ok",
+  },
+  {
+    role: "Owner",
+    name: "Priya",
+    initials: "OW",
+    time: "7:02 AM",
+    metric: "27.9%",
+    metricLabel: "labor, trailing 7 days — trending to plan",
+    actions: [
+      "Weekly labor summary, all regions — attached",
+      "Two stores flagged for next week's schedule review",
+    ],
+    callout: "Report → no action needed, trending well",
+    tone: "info",
+  },
+];
+
+/* ================================================================
+   Integrations
+   ================================================================ */
+
+/* TODO(barry): confirm the provider list. These generic wordmarks render
+   in the integrations strip until logo files are dropped into
+   /public/integrations (filenames become the display names — no code
+   change needed). */
+export const integrationProviders = [
+  "POS systems",
+  "Payroll",
+  "Accounting",
+  "Scheduling",
+  "Inventory",
+  "Review platforms",
+] as const;

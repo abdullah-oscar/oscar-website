@@ -1,7 +1,8 @@
 import { Container } from "@/components/ui/primitives";
 import { Reveal } from "@/components/ui/Reveal";
-import { Icon } from "@/components/ui/icons";
-import { steps } from "@/lib/site";
+import { PipelineVisual } from "@/components/site/PipelineVisual";
+import { integrationProviders, stats, steps } from "@/lib/site";
+import { integrationLogos } from "@/lib/assets";
 
 export function HowItWorks() {
   return (
@@ -14,9 +15,9 @@ export function HowItWorks() {
               <span className="kicker text-brand-600">How it works</span>
             </Reveal>
             <Reveal delay={1}>
-              <h2 className="mt-4 text-balance text-4xl font-semibold leading-[1.05]sm:text-5xl md:text-[3.3rem]">
+              <h2 className="mt-4 text-balance text-4xl font-semibold leading-[1.05] sm:text-5xl md:text-[3.3rem]">
                 Up and running in{" "}
-                <span className="text-brand-600">days, not months</span>
+                <span className="text-brand-600">30 days, not months</span>
               </h2>
             </Reveal>
             <Reveal delay={2}>
@@ -53,7 +54,10 @@ export function HowItWorks() {
 
           {/* Right: pipeline visual */}
           <Reveal delay={2}>
-            <PipelineVisual />
+            <div>
+              <PipelineVisual />
+              <IntegrationsStrip />
+            </div>
           </Reveal>
         </div>
       </Container>
@@ -61,105 +65,39 @@ export function HowItWorks() {
   );
 }
 
-function PipelineVisual() {
-  const sources = ["POS", "Payroll", "PDFs", "APIs", "SFTP", "Sheets"];
+/**
+ * Provider strip under the pipeline. Logos are discovered from
+ * /public/integrations at build time — drop files in and they render
+ * with no code change; until then the generic wordmarks stand in.
+ */
+function IntegrationsStrip() {
+  const logos = integrationLogos();
   return (
-    <div className="rounded-[20px] border border-line bg-white p-6 shadow-panel">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-muted">
-          Oscar pipeline
-        </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-          <span className="size-1.5 rounded-full bg-emerald-500 animate-blink" />
-          Connected
-        </span>
+    <div className="mt-5 rounded-xl border border-line bg-white px-4 py-3.5 shadow-e1">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
+        Works with <span className="tnum text-brand-700">{stats.integrations}+</span>{" "}
+        providers you already use
+      </p>
+      <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+        {logos.length > 0
+          ? logos.map((l) => (
+              // Logo dimensions vary and are unknown at build time; CSS sizes them.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={l.src}
+                src={l.src}
+                alt={l.name}
+                loading="lazy"
+                decoding="async"
+                className="h-6 w-auto max-w-[96px] object-contain"
+              />
+            ))
+          : integrationProviders.map((p) => (
+              <span key={p} className="text-[12px] font-semibold text-slate/70">
+                {p}
+              </span>
+            ))}
       </div>
-
-      <div className="flex flex-wrap gap-2">
-        {sources.map((s) => (
-          <span
-            key={s}
-            className="rounded-md border border-line bg-mist px-2.5 py-1.5 text-[11px] font-semibold text-slate"
-          >
-            {s}
-          </span>
-        ))}
-      </div>
-
-      <Connector />
-
-      <div className="rounded-xl border border-brand-100 bg-brand-50 p-4">
-        <div className="flex items-center gap-2.5">
-          <span className="grid size-8 place-items-center rounded-lg bg-brand-500 text-white">
-            <Icon name="radar" width={18} height={18} />
-          </span>
-          <div>
-            <div className="text-[13px] font-extrabold text-navy">
-              Oscar reasoning engine
-            </div>
-            <div className="text-[10.5px] font-medium text-slate">
-              normalizing · detecting · routing
-            </div>
-          </div>
-        </div>
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          {[
-            { k: "Revenue", v: "$48.2K", c: "text-emerald-600" },
-            { k: "Labor", v: "28.3%", c: "text-brand-600" },
-            { k: "Flags", v: "3", c: "text-signal-crit" },
-          ].map((m) => (
-            <div
-              key={m.k}
-              className="rounded-lg border border-line bg-white px-2.5 py-2 text-center"
-            >
-              <div className={`tnum text-base font-extrabold ${m.c}`}>{m.v}</div>
-              <div className="text-[9px] font-bold uppercase tracking-wide text-muted">
-                {m.k}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <Connector />
-
-      <div className="flex flex-col gap-2">
-        <Output tone="warn" text="Alert → District Leader: void anomaly, Loc #14" />
-        <Output tone="info" text="Report → Weekly labor summary, all regions" />
-        <Output tone="ok" text="Action plan → Prep fix routed to Loc #22 GM" />
-      </div>
-    </div>
-  );
-}
-
-function Connector() {
-  return (
-    <div className="my-3.5 flex justify-center">
-      <span className="flex flex-col items-center text-brand-400">
-        <span className="h-5 w-px bg-line" />
-        <Icon name="arrow" width={15} height={15} className="rotate-90" />
-      </span>
-    </div>
-  );
-}
-
-function Output({ tone, text }: { tone: "warn" | "info" | "ok"; text: string }) {
-  const styles = {
-    warn: "border-amber-200 bg-amber-50 text-amber-800",
-    info: "border-brand-100 bg-brand-50 text-brand-700",
-    ok: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  }[tone];
-  const dot = {
-    warn: "bg-signal-warn",
-    info: "bg-brand-500",
-    ok: "bg-signal-ok",
-  }[tone];
-  return (
-    <div
-      className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-[12px] font-semibold ${styles}`}
-    >
-      <span className={`size-1.5 shrink-0 rounded-full ${dot}`} />
-      {text}
     </div>
   );
 }

@@ -27,10 +27,11 @@ Tailwind utilities (`bg-brand-500`, `text-navy`, `border-line`, …).
 
 ### Navy — used deliberately, not everywhere
 
-`navy #0a1f35`. Appears in exactly three places, mirroring the live site:
-the **dashboard header bar**, the **"Why Oscar" band**, and the **footer**.
-That restraint is what keeps it feeling like Oscar and not a generic dark
-AI template.
+`navy #0a1f35`. Appears in a handful of emphasis moments only: small product
+chrome (the film's logo tile), the **/about pull-quote band**, and the
+**footer**. That restraint is what keeps it feeling like Oscar and not a
+generic dark AI template. (The navy "Why Oscar" band is currently commented
+out of the homepage; the budget transfers, it doesn't grow.)
 
 ### Neutrals & text
 
@@ -82,34 +83,75 @@ rather than confident.
 > the product surfaces — which are fundamentally tables of numbers — read as an
 > editorial site rather than software. Mono numerals do that job better.
 
+## Backdrops
+
+The hero backdrop (`components/site/HeroBackdrop.tsx`) is **soft light, no
+circuitry**: a white→blue-tint wash, two gradient-mesh bloom layers drifting
+against each other (`drift` vs. the slower reversed `drift-slow`), one static
+horizon glow low in the frame, and an SVG-turbulence grain tile blended
+overlay so the gradients don't read as flat CSS. The old grid / node-mesh /
+scan-band layers were removed on purpose — they read as generic "AI network"
+decoration. Interior pages (/newsroom, /about) use the quieter
+`PageBackdrop.tsx` (wash + one mesh + grain).
+
+**Stacking contract** (documented in the HeroBackdrop header): backdrop layers
+sit at `z-0` inside a `relative overflow-hidden` section and content carries
+`relative z-10`. Never `-z-10` — it escapes the (non-)stacking context and
+paints invisibly beneath the section's own background.
+
 ## Section rhythm
 
-The page alternates deliberately so a long scroll never flattens out:
+The page alternates deliberately so a long scroll never flattens out
+(current homepage order in `app/page.tsx`):
 
 ```
-Hero white → TrustedBy mist → Features white → Watchtower mist →
-HowItWorks white → WhyOscar NAVY → Metrics white → Industries mist →
-Testimonials white → Game mist → FAQ white → CTA brand-50 → Footer NAVY
+Hero white → TrustedBy white (border-y) → CommandCenter gradient →
+DailyBriefs mist → HowItWorks white → Metrics white →
+Testimonials white → Newsroom mist → FAQ white → Footer NAVY
 ```
 
-Two accent moments carry the brand: the **navy "Why Oscar" band** and the
-**brand-blue testimonial block** (both lifted from the live site).
+(`Features`, `WhyOscar`, `Industries`, `CTA` — and, since Aug 2026,
+`Results` mist, `AboutTeaser` brand-50, and `Game` mist — are implemented but
+commented out of `app/page.tsx`; restoring one means rechecking this
+alternation and its `nav[]` entry. See docs/CONTENT.md.)
 
 ## Motion
 
-Motion means *aliveness*, never decoration:
+Motion means *aliveness*, never decoration — and it is **two-tier**:
+
+- **Continuous loops are CSS keyframes** (marquee, backdrop drift, the
+  pipeline's chip-feed / connector-flow / radar-sweep / row-flash), so they
+  cost no React work per frame and the global reduced-motion rule stops each
+  one at a resting state that still reads correctly.
+- **One-shot work is Motion** (scroll reveals, count-ups gated on
+  `useInView(once: true)`, staggered entrances), guarded with
+  `useReducedMotion()` / the `entry()` snap-to-end pattern from
+  `showcase/parts.tsx` so nothing ever renders blank or zeroed.
+
+The set pieces:
 
 - **Reveal on scroll** — fade up 22px, expo ease, staggered (`ui/Reveal.tsx`).
-- **Live because Oscar is working** — the hero dashboard counts revenue, grows
-  its chart, and streams alerts; the Watchtower detects and resolves.
+- **Live because Oscar is working** — the hero simulation, the pipeline engine
+  (`PipelineVisual.tsx`), and the product film all *run*; nothing glows for
+  glow's sake.
+- **The film is software being used, not a slideshow** — one app window that
+  never unmounts while its body cross-dissolves, plus a scripted cursor that
+  walks to the next rail item and clicks it a beat before each cut
+  (`AppFilm.tsx`). The scenes are invented, never copies of the real app
+  (see docs/CONTENT.md). An Aug 2026 pass added browser chrome, a glare
+  sweep, a scroll-linked tilt, and real-app-shaped scenes; all of it was
+  reverted on the manager's call.
 - **Micro-interactions** — cards lift 3px, buttons rise 1px, FAQ "+" rotates.
 - **`prefers-reduced-motion`** collapses everything, globally and per-component.
 
 ## Utilities (globals.css)
 
-`.kicker` · `.tnum` · `.btn-primary` (flat brand blue) · `.btn-navy` ·
-`.btn-ghost` · `.card-lift` · `.shadow-panel` · `.bg-grid` · `.mask-fade-b/-x` ·
-`.pulse-ring` (radar ping) · `.animate-marquee/-float/-blink`.
+`.kicker` · `.tnum` · `.num` · `.btn-primary` (flat brand blue) · `.btn-navy` ·
+`.btn-ghost` · `.card-lift` · `.shadow-panel/-stage` · `.bg-grid/-grid-fine` ·
+`.bg-mesh-a/-b` · `.bg-horizon` · `.bg-grain` · `.mask-fade-b/-x` ·
+`.mask-radial` · `.pulse-ring` (radar ping) ·
+`.animate-marquee/-float/-blink/-drift/-drift-slow/-breathe` and the pipeline
+loops `.animate-feed/-flow/-flow-dot/-sweep/-engine-pulse/-row-flash`.
 
 ## Layout
 

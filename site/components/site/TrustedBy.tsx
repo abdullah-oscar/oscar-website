@@ -1,4 +1,4 @@
-import { trustedBrands } from "@/lib/site";
+import { stats, trustedBrands } from "@/lib/site";
 import { customerLogos } from "@/lib/assets";
 import { Container } from "@/components/ui/primitives";
 
@@ -18,7 +18,9 @@ export function TrustedBy() {
     >
       <Container>
         <p className="kicker mb-8 text-center text-muted">
-          Trusted by operators running thousands of locations
+          Trusted by operators running{" "}
+          <span className="tnum">{stats.locations.toLocaleString("en-US")}</span>{" "}
+          locations across {stats.brands} brands
         </p>
         <div className="relative overflow-hidden mask-fade-x pause-hover">
           <div className="flex w-max animate-marquee items-center gap-16">

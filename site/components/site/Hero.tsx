@@ -449,7 +449,8 @@ export function Hero() {
             </div>
 
             <p className="mt-3 text-center text-[11px] text-muted">
-              Live simulation — illustrative locations and figures.
+              Simulated demo — illustrative locations and figures, not live
+              customer data.
             </p>
           </div>
         </Reveal>

@@ -49,3 +49,21 @@ export function complianceBadges(): Asset[] {
     name: prettyName(f),
   }));
 }
+
+/** Provider logos for the integrations strip. The folder doesn't exist
+ *  yet — callers fall back to wordmarks until logo files are dropped in. */
+export function integrationLogos(): Asset[] {
+  return listImages("integrations").map((f) => ({
+    src: `/integrations/${f}`,
+    name: prettyName(f),
+  }));
+}
+
+/** Team headshots for /about. Name files after the person ("abdullah-khan.jpg")
+ *  and match them from lib/about.ts; absent files fall back to initials. */
+export function teamPhotos(): Asset[] {
+  return listImages("team").map((f) => ({
+    src: `/team/${f}`,
+    name: prettyName(f),
+  }));
+}

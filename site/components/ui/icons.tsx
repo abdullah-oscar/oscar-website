@@ -92,6 +92,12 @@ export const Icons = {
       <path d="M5 12h14M13 6l6 6-6 6" />
     </svg>
   ),
+  clock: (p: IconProps) => (
+    <svg {...base} {...p}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </svg>
+  ),
   check: (p: IconProps) => (
     <svg {...base} {...p}>
       <path d="M5 12.5 10 17l9-10" />

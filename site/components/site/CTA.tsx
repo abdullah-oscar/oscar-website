@@ -33,11 +33,15 @@ export function CTA() {
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <Icon name="check" width={15} height={15} className="text-brand-600" />
-                  Live in days
+                  Live in 30 days
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <Icon name="check" width={15} height={15} className="text-brand-600" />
                   No rip-and-replace
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Icon name="check" width={15} height={15} className="text-brand-600" />
+                  No additional staffing
                 </span>
               </div>
             </Reveal>

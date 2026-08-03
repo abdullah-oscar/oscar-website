@@ -23,9 +23,31 @@ export function Logo({
   variant = "dark",
 }: {
   className?: string;
-  /** "light" = for navy surfaces, where the navy artwork would disappear */
-  variant?: "dark" | "light";
+  /** "light" = for navy surfaces, where the navy artwork would disappear;
+   *  "full" = lockup + tagline, for hero/brand moments (not the 68px nav).
+   *  Composed from the transparent crop + type rather than rendering
+   *  oscar-main-logo.png, whose opaque background would show as a white
+   *  box against any non-white surface. */
+  variant?: "dark" | "light" | "full";
 }) {
+  if (variant === "full") {
+    return (
+      <span className={`inline-flex flex-col gap-2.5 ${className}`}>
+        <Image
+          src="/logos/oscar-logo.png"
+          alt="Oscar AI"
+          width={LOGO_W}
+          height={LOGO_H}
+          priority
+          className="h-[56px] w-auto"
+        />
+        <span className="text-[13px] font-semibold tracking-[-0.01em] text-brand-700">
+          One Platform. Total Insight. Immediate Action.
+        </span>
+      </span>
+    );
+  }
+
   if (variant === "light") {
     // The lockup's type is navy and would vanish on a navy band, so compose
     // the mark from the transparent mascot plus type instead.

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { NewsList } from "@/components/site/newsroom/NewsList";
+import { PageBackdrop } from "@/components/site/PageBackdrop";
 import { Reveal } from "@/components/ui/Reveal";
 import { sortedNews } from "@/lib/newsroom";
 import { site } from "@/lib/site";
@@ -26,10 +27,7 @@ export default function NewsroomPage() {
       <Nav />
       <main id="main">
         <section className="relative overflow-hidden border-b border-line pt-32 pb-14 md:pt-36 md:pb-16">
-          <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
-            <div className="absolute inset-x-0 top-0 h-[420px] bg-aurora opacity-55 animate-drift" />
-            <div className="absolute inset-0 bg-grid-fine mask-fade-b opacity-40" />
-          </div>
+          <PageBackdrop />
 
           <div className="relative z-10 mx-auto w-full max-w-6xl px-6 md:px-8">
             <Reveal>

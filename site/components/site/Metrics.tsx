@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Container } from "@/components/ui/primitives";
-import { metrics } from "@/lib/site";
+import { metrics, type Metric } from "@/lib/site";
 
 function useInView<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
@@ -45,13 +45,13 @@ function Counter({ target, run }: { target: number; run: boolean }) {
   return <>{val.toLocaleString()}</>;
 }
 
-export function Metrics() {
+export function Metrics({ items = metrics }: { items?: Metric[] }) {
   const { ref, inView } = useInView<HTMLDivElement>();
   return (
     <section className="border-b border-line bg-white py-16">
       <Container>
         <div ref={ref} className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4">
-          {metrics.map((m) => {
+          {items.map((m) => {
             const numeric = Number(m.value);
             return (
               <div key={m.label} className="text-center">
