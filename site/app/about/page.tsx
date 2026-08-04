@@ -12,7 +12,7 @@ import { teamPhotos } from "@/lib/assets";
 
 export const metadata: Metadata = {
   title: "About",
-  description: `${site.name} was built by restaurant operators, for restaurant operators — the story, the team, and the ${stats.locations.toLocaleString("en-US")} locations it watches today.`,
+  description: `${site.name} was built by restaurant operators, for restaurant operators — the story, the team, and the ${stats.locationsLabel} locations it watches today.`,
   alternates: { canonical: "/about" },
   openGraph: {
     type: "website",
@@ -22,9 +22,12 @@ export const metadata: Metadata = {
   },
 };
 
+/* Bare numbers + a "+" suffix, not the *Label strings: <Metrics /> counts up
+   to a numeric value, and "1,400+" would fail Number() and render static. The
+   "+" is what keeps the claim approximate. */
 const aboutMetrics: Metric[] = [
-  { value: stats.locations.toString(), label: "Locations live today" },
-  { value: stats.brands.toString(), label: "Brands operated on Oscar" },
+  { value: stats.locations.toString(), suffix: "+", label: "Locations live today" },
+  { value: stats.brands.toString(), suffix: "+", label: "Brands operated on Oscar" },
   { value: stats.integrations.toString(), suffix: "+", label: "Providers integrated" },
   { value: "24", suffix: "/7", label: "Every location, always watched" },
 ];

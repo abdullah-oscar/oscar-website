@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { OscarMascot } from "./OscarMascot";
 import { HeroBackdrop } from "./HeroBackdrop";
@@ -29,22 +29,24 @@ import { site } from "@/lib/site";
 
 const INTRO_MS = 2600;
 const CYCLE_MS = 3600;
-const ROUTE_AT_MS = 2000;
 const TYPE_MS = 24;
 
 const INTRO_TEXT = "Hi, I'm Oscar — I watch every location, every shift.";
 
-/** Quirky openers, picked at random per visit — the brand's own voice. */
+/* Quirky openers, picked at random per visit — the brand's own voice.
+   Two lines, not three: the cycle headline below is two lines, and the
+   tallest variant here sets the min-height for both. A three-line opener
+   bought a permanent gap under every two-line headline. */
 const introVariants = [
-  ["Ostriches don't", "bury their heads.", "Operators do."],
-  ["Ostriches have the", "sharpest eyes on land.", "Oscar never blinks."],
-  ["Ostriches can't fly.", "They just watch, instead.", "So does Oscar."],
+  ["Ostriches don't blink.", "Neither does Oscar."],
+  ["Sharpest eyes on land.", "Now pointed at your P&L."],
+  ["Ostriches can't fly.", "They watch instead."],
 ] as const;
 
 type Tone = "warn" | "crit";
 
 type Issue = {
-  /** Completes "Oscar already caught ___" */
+  /** Completes "Oscar caught ___" — kept short so the headline stays two lines. */
   noun: string;
   loc: string;
   detail: string;
@@ -53,8 +55,13 @@ type Issue = {
   tone: Tone;
   icon: IconKey;
   owner: string;
-  /** Which tile on the floor lights up — spread apart so the eye moves. */
-  node: number;
+  /**
+   * Every tile currently alerting, as indexes into the 36-tile floor. The
+   * first one is `loc`; the rest are the other locations caught by the same
+   * sweep. The status pill counts these, so the number a visitor reads and
+   * the tiles they can see lighting up are always the same fact.
+   */
+  nodes: number[];
 };
 
 const issues: Issue[] = [
@@ -66,7 +73,7 @@ const issues: Issue[] = [
     tone: "warn",
     icon: "bolt",
     owner: "Dana R.",
-    node: 22,
+    nodes: [21, 4, 29],
   },
   {
     noun: "void fraud.",
@@ -76,27 +83,27 @@ const issues: Issue[] = [
     tone: "crit",
     icon: "shield",
     owner: "Marcus T.",
-    node: 7,
+    nodes: [13, 26],
   },
   {
-    noun: "labor overages.",
+    noun: "labor creep.",
     loc: "Location #07",
     detail: "Labor running 4% over target",
     bubble: "Location #07 is 4% over on labor.",
     tone: "warn",
     icon: "trend",
     owner: "Priya N.",
-    node: 30,
+    nodes: [6, 11, 24, 33],
   },
   {
-    noun: "break violations.",
+    noun: "a skipped break.",
     loc: "Location #09",
     detail: "Meal break missed on shift 2",
     bubble: "A break violation just hit Location #09.",
     tone: "crit",
     icon: "lock",
     owner: "Sam K.",
-    node: 13,
+    nodes: [8],
   },
 ];
 
@@ -121,12 +128,18 @@ export function Hero() {
 
   const [phase, setPhase] = useState<"intro" | "cycle">("intro");
   const [index, setIndex] = useState(0);
-  const [routed, setRouted] = useState(false);
   // Fixed on the server so hydration matches; randomized right after mount
   // so repeat visits don't always open on the same line.
   const [introIdx, setIntroIdx] = useState(0);
   const [checks, setChecks] = useState(1247);
   const [typed, setTyped] = useState("");
+  const [feedTyped, setFeedTyped] = useState("");
+
+  /* The running feed of what Oscar has picked up. Newest first, capped at
+     three: the point of it is pace — alerts piling up while you read —
+     which one card replacing itself could never show. */
+  const [feed, setFeed] = useState<{ id: number; issue: Issue }[]>([]);
+  const feedSeq = useRef(0);
 
   useEffect(() => {
     setIntroIdx(Math.floor(Math.random() * introVariants.length));
@@ -141,17 +154,19 @@ export function Hero() {
     return () => clearTimeout(t);
   }, [reduced]);
 
-  /* One issue at a time: surface it, route it, move on. */
+  /* Surface the next issue, push it onto the feed, move on. */
   useEffect(() => {
     if (phase !== "cycle" || reduced) return;
-    setRouted(false);
-    const route = setTimeout(() => setRouted(true), ROUTE_AT_MS);
     const advance = setTimeout(() => setIndex((i) => (i + 1) % issues.length), CYCLE_MS);
-    return () => {
-      clearTimeout(route);
-      clearTimeout(advance);
-    };
+    return () => clearTimeout(advance);
   }, [phase, index, reduced]);
+
+  useEffect(() => {
+    if (phase !== "cycle") return;
+    feedSeq.current += 1;
+    const entry = { id: feedSeq.current, issue: issues[index] };
+    setFeed((f) => [entry, ...f].slice(0, 3));
+  }, [phase, index]);
 
   /* The counter that never stops — the cheapest possible proof of "always on". */
   useEffect(() => {
@@ -164,6 +179,7 @@ export function Hero() {
   }, [reduced]);
 
   const active = issues[index];
+  const alerting = active.nodes.length;
 
   /* Oscar owns the intro, then the stage alternates two beats at a time. */
   const act: "floor" | "oscar" =
@@ -188,6 +204,29 @@ export function Hero() {
     return () => clearInterval(id);
   }, [act, bubbleText, reduced]);
 
+  /* The same typing tic on the newest line of the feed — it is the detail
+     that makes an alert feel like it just landed rather than like it was
+     always sitting there. Keyed on the entry id, not the array, so it does
+     not restart when an older item drops off the end. */
+  const newest = feed[0];
+  useEffect(() => {
+    if (act !== "floor" || !newest) return;
+    const text = newest.issue.detail;
+    if (reduced) {
+      setFeedTyped(text);
+      return;
+    }
+    setFeedTyped("");
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      setFeedTyped(text.slice(0, i));
+      if (i >= text.length) clearInterval(id);
+    }, 16);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [act, newest?.id, reduced]);
+
   return (
     <section id="top" className="relative overflow-hidden bg-white pt-28 pb-16 md:pt-32 md:pb-20">
       <HeroBackdrop />
@@ -196,19 +235,48 @@ export function Hero() {
       <div className="relative z-10 mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-10 px-6 md:px-8 lg:grid-cols-[1.05fr_1fr]">
         {/* ---------------- left: the claim ---------------- */}
         <div>
+          {/* Opens calm, then reports what is actually alerting — and the count
+              is `active.nodes.length`, the same array the floor lights up, so
+              the pill can never claim a number the tiles contradict. */}
           <Reveal>
             <span className="inline-flex items-center gap-2 rounded-full border border-line bg-white/80 py-1 pl-2 pr-3 text-[12px] font-medium text-slate shadow-e1 backdrop-blur-sm">
-              <span className="relative grid size-4 place-items-center text-emerald-500">
-                <span className="size-1.5 rounded-full bg-emerald-500" />
+              <span className="relative grid size-4 place-items-center">
+                <span
+                  className={`size-1.5 rounded-full ${
+                    phase === "intro"
+                      ? "bg-emerald-500"
+                      : active.tone === "crit"
+                        ? "bg-red-500"
+                        : "bg-amber-400"
+                  }`}
+                />
                 {!reduced && <span className="pulse-ring absolute inset-0" />}
               </span>
-              Watching 36 locations right now
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={phase === "intro" ? "intro" : alerting}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  {phase === "intro" ? (
+                    <>Watching all {NODES} locations right now</>
+                  ) : (
+                    <>
+                      Alerting{" "}
+                      <b className="num font-semibold text-navy">{alerting}</b>{" "}
+                      {alerting === 1 ? "location" : "locations"} right now
+                    </>
+                  )}
+                </motion.span>
+              </AnimatePresence>
             </span>
           </Reveal>
 
           {/* No text-balance: the line breaks are authored deliberately. */}
           <Reveal>
-            <h1 className="mt-5 min-h-[3.15em] text-[2.9rem] font-semibold leading-[1.02] sm:min-h-[2.9em] sm:text-[3.6rem] lg:text-[4.3rem]">
+            <h1 className="mt-5 min-h-[2.15em] text-[2.9rem] font-semibold leading-[1.02] sm:text-[3.6rem] lg:text-[4.3rem]">
               <AnimatePresence mode="wait">
                 {phase === "intro" ? (
                   <motion.span
@@ -221,9 +289,7 @@ export function Hero() {
                   >
                     {introVariants[introIdx][0]}
                     <br />
-                    {introVariants[introIdx][1]}
-                    <br />
-                    <span className="text-brand-600">{introVariants[introIdx][2]}</span>
+                    <span className="text-brand-600">{introVariants[introIdx][1]}</span>
                   </motion.span>
                 ) : (
                   <motion.span
@@ -233,7 +299,9 @@ export function Hero() {
                     transition={{ duration: 0.4 }}
                     className="block"
                   >
-                    Oscar already caught
+                    {/* "Oscar caught", not "Oscar already caught": the longer
+                        line wrapped at lg and pushed the noun to a third row. */}
+                    Oscar caught
                     <br />
                     <AnimatePresence mode="wait">
                       <motion.span
@@ -255,10 +323,11 @@ export function Hero() {
 
           <Reveal delay={1}>
             <p className="mt-6 max-w-xl text-pretty text-[1.05rem] leading-relaxed text-slate">
-              You can&rsquo;t watch every location at once. Oscar can — and his eyes
-              never close. He catches revenue leaks, labor blowouts, and compliance
-              risks the moment they happen, then tells the right person exactly what
-              to do.
+              An ostrich has the largest eye of any animal on land, and it never
+              looks away. Neither does Oscar. He watches every location at once,
+              catches the revenue leaks, labor creep and compliance slips the
+              moment they surface, and hands the one person who can fix it the
+              answer — before anyone thinks to go looking.
             </p>
           </Reveal>
 
@@ -310,13 +379,16 @@ export function Hero() {
                       <div className="px-4 pt-4">
                         <div className="grid grid-cols-9 gap-1.5">
                           {Array.from({ length: NODES }, (_, i) => {
-                            const isActive = i === active.node;
+                            const isActive = active.nodes.includes(i);
                             return (
                               <span key={i} className="relative aspect-square">
                                 <span
+                                  // No green "routed" state on the tiles any
+                                  // more — the feed below carries that, and
+                                  // having both say it split the eye in two.
                                   className={`absolute inset-0 rounded-[3px] transition-all duration-500 ${
                                     isActive
-                                      ? `${routed ? "bg-emerald-500" : toneTile[active.tone]} scale-125`
+                                      ? `${toneTile[active.tone]} scale-125`
                                       : "bg-brand-300 animate-breathe"
                                   }`}
                                   style={
@@ -327,7 +399,7 @@ export function Hero() {
                                         }
                                   }
                                 />
-                                {isActive && !routed && !reduced && (
+                                {isActive && !reduced && (
                                   <span
                                     className={`absolute inset-0 rounded-[3px] ring-2 ${toneRing[active.tone]} animate-blink`}
                                   />
@@ -338,49 +410,68 @@ export function Hero() {
                         </div>
                       </div>
 
-                      {/* what just surfaced */}
-                      <div className="min-h-[92px] px-4 pb-4 pt-3.5">
-                        <AnimatePresence mode="wait">
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -8 }}
-                            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                          >
-                            <div className="flex items-start gap-2.5 rounded-lg border border-line bg-white p-2.5 shadow-e1">
-                              <span
-                                className={`grid size-7 shrink-0 place-items-center rounded-md border ${toneChip[active.tone]}`}
+                      {/* The feed. Newest on top, still typing itself out;
+                          everything below it has already been routed to a
+                          person. Three at once is what sells the pace — a
+                          single card replacing itself said "one thing at a
+                          time", which is the opposite of the pitch. */}
+                      <div className="flex min-h-[150px] flex-col gap-1.5 px-4 pb-4 pt-3.5">
+                        <AnimatePresence initial={false} mode="popLayout">
+                          {feed.map((f, i) => {
+                            const live = i === 0;
+                            const extra = f.issue.nodes.length - 1;
+                            return (
+                              <motion.div
+                                key={f.id}
+                                layout
+                                initial={{ opacity: 0, y: -12, scale: 0.97 }}
+                                animate={{ opacity: live ? 1 : 0.62, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.97 }}
+                                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                                className={`flex items-start gap-2.5 rounded-lg border bg-white p-2 ${
+                                  live ? "border-line shadow-e1" : "border-line/70"
+                                }`}
                               >
-                                <Icon name={active.icon} width={13} height={13} />
-                              </span>
-                              <span className="min-w-0 flex-1">
-                                <span className="block text-[12px] font-semibold leading-tight text-navy">
-                                  {active.loc}
+                                <span
+                                  className={`grid size-6 shrink-0 place-items-center rounded-md border ${toneChip[f.issue.tone]}`}
+                                >
+                                  <Icon name={f.issue.icon} width={12} height={12} />
                                 </span>
-                                <span className="block truncate text-[11px] leading-tight text-slate">
-                                  {active.detail}
-                                </span>
-                              </span>
-                            </div>
 
-                            {/* the half nobody else does: it gets an owner */}
-                            <motion.div
-                              className="mt-1.5 flex items-center gap-1.5 pl-1"
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: routed ? 1 : 0 }}
-                              transition={{ duration: 0.35 }}
-                            >
-                              <span className="grid size-3.5 place-items-center rounded-full bg-emerald-500 text-white">
-                                <Icon name="check" width={9} height={9} />
-                              </span>
-                              <span className="text-[10.5px] text-slate">
-                                Routed to{" "}
-                                <b className="font-semibold text-navy">{active.owner}</b> —
-                                with the fix attached
-                              </span>
-                            </motion.div>
-                          </motion.div>
+                                <span className="min-w-0 flex-1">
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="text-[11.5px] font-semibold leading-tight text-navy">
+                                      {f.issue.loc}
+                                    </span>
+                                    {extra > 0 && (
+                                      <span className="num rounded-full bg-mist px-1.5 py-px text-[9px] font-semibold text-slate">
+                                        +{extra}
+                                      </span>
+                                    )}
+                                  </span>
+
+                                  {live ? (
+                                    <span className="block truncate text-[10.5px] leading-tight text-slate">
+                                      {feedTyped}
+                                      {!reduced && (
+                                        <span className="ml-px inline-block h-[9px] w-[1.5px] translate-y-[1px] animate-caret bg-navy align-middle" />
+                                      )}
+                                    </span>
+                                  ) : (
+                                    <span className="flex items-center gap-1 text-[10.5px] leading-tight text-slate">
+                                      <span className="grid size-3 shrink-0 place-items-center rounded-full bg-emerald-500 text-white">
+                                        <Icon name="check" width={8} height={8} />
+                                      </span>
+                                      Routed to{" "}
+                                      <b className="truncate font-semibold text-navy">
+                                        {f.issue.owner}
+                                      </b>
+                                    </span>
+                                  )}
+                                </span>
+                              </motion.div>
+                            );
+                          })}
                         </AnimatePresence>
                       </div>
                     </div>

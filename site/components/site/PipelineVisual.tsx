@@ -114,9 +114,9 @@ export function PipelineVisual() {
       <div className="flex flex-col gap-2">
         {(
           [
-            { tone: "warn", text: "Alert → District Leader: void anomaly, Loc #14" },
+            { tone: "warn", text: "Alert → District Leader: void anomaly, Location #14" },
             { tone: "info", text: "Report → Weekly labor summary, all regions" },
-            { tone: "ok", text: "Action plan → Prep fix routed to Loc #22 GM" },
+            { tone: "ok", text: "Action plan → Prep fix routed to Location #22 GM" },
           ] as const
         ).map((o, i) => (
           <Output key={o.tone} tone={o.tone} text={o.text} i={i} inView={inView} reduced={reduced} />

@@ -15,9 +15,10 @@ const proof = [
  * split with the copy: a four-KPI dashboard squeezed into half a grid is
  * where product screenshots go to become unreadable.
  *
- * NOTE: <AppFilm /> is an illustrative reconstruction, not real screenshots.
- * When real captures land in /public/product they can replace individual
- * scenes without touching the timeline.
+ * NOTE: <AppFilm /> renders deliberately invented views, not screenshots and
+ * not reconstructions. Real captures must NOT replace these scenes — that is
+ * the whole point of them. See the header of showcase/scenes.tsx for the rules
+ * before editing anything inside the window.
  */
 export function CommandCenter() {
   return (

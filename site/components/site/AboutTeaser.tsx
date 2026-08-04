@@ -6,8 +6,8 @@ import { site, stats } from "@/lib/site";
 /** Short homepage band pointing at /about — the story is the credibility. */
 export function AboutTeaser() {
   const chips = [
-    `${stats.locations.toLocaleString("en-US")} locations`,
-    `${stats.brands} brands`,
+    `${stats.locationsLabel} locations`,
+    `${stats.brandsLabel} brands`,
     `Founded ${site.founded}`,
   ];
   return (
@@ -27,7 +27,7 @@ export function AboutTeaser() {
               Built to fix one operator&rsquo;s disconnected reporting, proven in
               his own locations, and now watching{" "}
               <span className="tnum font-semibold text-navy">
-                {stats.locations.toLocaleString("en-US")}
+                {stats.locationsLabel}
               </span>{" "}
               of them. Built by restaurant operators, for restaurant operators.
             </p>

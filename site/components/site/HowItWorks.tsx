@@ -15,7 +15,10 @@ export function HowItWorks() {
               <span className="kicker text-brand-600">How it works</span>
             </Reveal>
             <Reveal delay={1}>
-              <h2 className="mt-4 text-balance text-4xl font-semibold leading-[1.05] sm:text-5xl md:text-[3.3rem]">
+              {/* md:text-[3.4rem] matches <SectionHeading /> — this was the
+                  only h2 on the page at 3.3rem, close enough to read as an
+                  accident rather than a choice. */}
+              <h2 className="mt-4 text-balance text-4xl font-semibold leading-[1.05] sm:text-5xl md:text-[3.4rem]">
                 Up and running in{" "}
                 <span className="text-brand-600">30 days, not months</span>
               </h2>
@@ -41,8 +44,10 @@ export function HowItWorks() {
                       {s.n}
                     </span>
                     <div className="pt-1">
-                      <h3 className="text-lg font-bold">{s.title}</h3>
-                      <p className="mt-1.5 text-[0.95rem] leading-relaxed text-slate">
+                      <h3 className="text-lg font-semibold tracking-[-0.01em]">
+                        {s.title}
+                      </h3>
+                      <p className="mt-1.5 text-[15px] leading-relaxed text-slate">
                         {s.desc}
                       </p>
                     </div>
@@ -75,8 +80,9 @@ function IntegrationsStrip() {
   return (
     <div className="mt-5 rounded-xl border border-line bg-white px-4 py-3.5 shadow-e1">
       <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
-        Works with <span className="tnum text-brand-700">{stats.integrations}+</span>{" "}
-        providers you already use
+        Works with{" "}
+        <span className="tnum text-brand-700">{stats.integrationsLabel}</span> providers
+        you already use
       </p>
       <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5">
         {logos.length > 0

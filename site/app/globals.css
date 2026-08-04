@@ -72,6 +72,12 @@
 
   /* — Animations — */
   --animate-marquee: marquee 42s linear infinite;
+  /* Testimonial rows: same keyframe, one row reversed. `marquee` runs
+     translateX(0) → -50%, and because each row renders its cards twice the
+     -50% mark lands copy 2 exactly where copy 1 began — so playing it in
+     reverse is equally seamless, just travelling the other way. */
+  --animate-marquee-l: marquee 68s linear infinite;
+  --animate-marquee-r: marquee 68s linear infinite reverse;
   --animate-float: float 6s ease-in-out infinite;
   --animate-float-slow: float 9s ease-in-out infinite;
   --animate-pulse-ring: pulse-ring 2.4s var(--ease-out-expo) infinite;
@@ -388,6 +394,8 @@ h1 { letter-spacing: -0.04em; }
   }
 
   .animate-marquee { animation: var(--animate-marquee); }
+  .animate-marquee-l { animation: var(--animate-marquee-l); }
+  .animate-marquee-r { animation: var(--animate-marquee-r); }
   .animate-float { animation: var(--animate-float); }
   .animate-float-slow { animation: var(--animate-float-slow); }
   .animate-blink { animation: var(--animate-blink); }

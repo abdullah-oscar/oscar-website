@@ -41,11 +41,17 @@ type Scene = {
 /* Five beats that build an argument rather than tour a menu: here is the
    network → here is the pattern → here is the one store → here is it in the
    report you already live in → now just ask. Durations are trimmed from the
-   four-scene cut so the whole loop still lands around 26s. */
+   four-scene cut so the whole loop still lands around 26s.
+
+   The labels are ordinary words, not the product's module names. A rail is
+   the most screenshot-able thing in the frame and a list of real module
+   names publishes the product map for free — including, previously, two
+   modules that have not shipped. The narrative lives in `short`, below the
+   window, where it is doing marketing work instead. */
 const scenes: Scene[] = [
   {
-    id: "metrics",
-    label: "Daily Metrics",
+    id: "today",
+    label: "Today",
     short: "The morning read",
     icon: "grid",
     ms: 4800,
@@ -62,8 +68,8 @@ const scenes: Scene[] = [
     Comp: SceneTrends,
   },
   {
-    id: "scorecards",
-    label: "Scorecards",
+    id: "locations",
+    label: "Locations",
     short: "The outlier",
     icon: "radar",
     ms: 4800,
@@ -81,19 +87,13 @@ const scenes: Scene[] = [
   },
   {
     id: "chat",
-    label: "Ask Oscar",
+    label: "Ask",
     short: "The answer",
     icon: "chat",
     ms: 6000,
     focus: { fx: 0.7, fy: 0.44 },
     Comp: SceneChat,
   },
-];
-
-/** Rail entries below the fold of the film — present for realism, inert. */
-const restRail: { label: string; icon: IconKey }[] = [
-  { label: "Inventory", icon: "box" },
-  { label: "Labor", icon: "people" },
 ];
 
 type Point = { x: number; y: number };
@@ -233,24 +233,6 @@ export function AppFilm() {
                 );
               })}
 
-              <div className="my-1.5 border-t border-line" />
-
-              {restRail.map((r) => (
-                <span
-                  key={r.label}
-                  className="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-muted/70 lg:px-2"
-                >
-                  <Icon
-                    name={r.icon}
-                    width={13}
-                    height={13}
-                    className="mx-auto shrink-0 lg:mx-0"
-                  />
-                  <span className="hidden truncate text-[10.5px] font-medium lg:block">
-                    {r.label}
-                  </span>
-                </span>
-              ))}
             </div>
 
             {/* ---- main ---- */}
@@ -428,7 +410,8 @@ export function AppFilm() {
       </div>
 
       <p className="mt-4 text-center text-[11px] text-muted">
-        Illustrative walkthrough — figures are examples, not a real customer account.
+        Illustrative walkthrough — an interpretation of the product, not screenshots.
+        Locations and figures are examples.
       </p>
     </div>
   );

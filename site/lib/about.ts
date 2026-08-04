@@ -37,7 +37,7 @@ export const story: Milestone[] = [
   },
   {
     year: "Today",
-    title: `${stats.locations.toLocaleString("en-US")} locations, ${stats.brands} brands`,
+    title: `${stats.locationsLabel} locations, ${stats.brandsLabel} brands`,
     body: "Backed by investors and run by the same operator instincts it was born from. Built by restaurant operators, for restaurant operators.",
   },
 ];

@@ -41,9 +41,21 @@ export const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 type Pt = { x: number; y: number };
 
-function toPoints(values: number[], w: number, h: number, pad: number): Pt[] {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+/**
+ * `domain` pins the vertical scale to an explicit [min, max]. Without it each
+ * series is normalised against its own extremes, which is right for a lone
+ * sparkline and wrong the moment two lines share a chart — a flat series would
+ * stretch to fill the same box as a steep one and the comparison would lie.
+ */
+function toPoints(
+  values: number[],
+  w: number,
+  h: number,
+  pad: number,
+  domain?: [number, number]
+): Pt[] {
+  const min = domain ? domain[0] : Math.min(...values);
+  const max = domain ? domain[1] : Math.max(...values);
   const span = max - min || 1;
   const step = values.length > 1 ? w / (values.length - 1) : w;
   return values.map((v, i) => ({
@@ -53,6 +65,18 @@ function toPoints(values: number[], w: number, h: number, pad: number): Pt[] {
 }
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
+
+/** Coordinates of a single sample — for pinning annotations onto a curve. */
+export function pointAt(
+  values: number[],
+  i: number,
+  w: number,
+  h: number,
+  pad = 3,
+  domain?: [number, number]
+): Pt {
+  return toPoints(values, w, h, pad, domain)[i];
+}
 
 /** Straight polyline path. */
 export function linePath(values: number[], w: number, h: number, pad = 3) {
@@ -66,8 +90,14 @@ export function linePath(values: number[], w: number, h: number, pad = 3) {
  * line is what separates a chart that looks designed from one that looks
  * like a sawtooth of hand-typed points.
  */
-export function smoothPath(values: number[], w: number, h: number, pad = 3) {
-  const p = toPoints(values, w, h, pad);
+export function smoothPath(
+  values: number[],
+  w: number,
+  h: number,
+  pad = 3,
+  domain?: [number, number]
+) {
+  const p = toPoints(values, w, h, pad, domain);
   if (p.length < 3) return linePath(values, w, h, pad);
   let d = `M${r1(p[0].x)},${r1(p[0].y)}`;
   for (let i = 0; i < p.length - 1; i++) {
@@ -85,8 +115,14 @@ export function smoothPath(values: number[], w: number, h: number, pad = 3) {
 }
 
 /** Same curve, closed to the baseline so it can be filled. */
-export function areaPath(values: number[], w: number, h: number, pad = 3) {
-  return `${smoothPath(values, w, h, pad)} L${r1(w)},${h} L0,${h} Z`;
+export function areaPath(
+  values: number[],
+  w: number,
+  h: number,
+  pad = 3,
+  domain?: [number, number]
+) {
+  return `${smoothPath(values, w, h, pad, domain)} L${r1(w)},${h} L0,${h} Z`;
 }
 
 /* ---------------------------------------------------------------

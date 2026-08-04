@@ -33,13 +33,27 @@ export const site = {
  * the site. Update here and every section, FAQ, and JSON-LD block that
  * references them stays in sync.
  */
+/**
+ * Trust stats — deliberately approximate.
+ *
+ * We do not publish exact customer counts: a precise "1,536 locations" is a
+ * number that goes stale the week a contract lands or lapses, invites the
+ * question "which 1,536?", and hands a competitor a scoreboard. Every band
+ * below rounds DOWN to something that stays true for a while.
+ *
+ * The bare numbers feed <Metrics />, which counts up to them and appends
+ * `suffix`. The `*Label` strings are what belongs in running copy.
+ *
+ * TODO(barry): confirm each band is defensible before launch.
+ */
 export const stats = {
-  /** TODO(barry): confirm the exact live location count before launch. */
-  locations: 1536, // render via .toLocaleString("en-US") → "1,536"
-  brands: 18,
+  locations: 1400,
+  locationsLabel: "1,400+",
+  brands: 15,
+  brandsLabel: "15+",
   goLiveDays: 30,
-  /** TODO(barry): confirm the provider count once the integrations list is final. */
-  integrations: 50, // rendered as "50+"
+  integrations: 50,
+  integrationsLabel: "50+",
 } as const;
 
 /**
@@ -212,9 +226,12 @@ export type Metric = {
   label: string;
 };
 
+/* Same rule as `stats`: state a floor, not a precise figure. "90%+" is a
+   claim we can defend on any given week; "95%" is one we would have to keep
+   re-earning. TODO(barry): confirm the reduction band. */
 export const metrics: Metric[] = [
   { value: "24", suffix: "/7", label: "Every location, always watched" },
-  { value: "95", suffix: "%", label: "Reduction in manual reporting" },
+  { value: "90", suffix: "%+", label: "Reduction in manual reporting" },
   { value: "1000", suffix: "s", label: "Workflows automated" },
   { value: "30", suffix: "-day", label: "Typical time to go live" },
 ];
@@ -325,7 +342,7 @@ export const faqs: Faq[] = [
   },
   {
     q: "What systems does Oscar integrate with?",
-    a: `Oscar already integrates with ${stats.integrations}+ providers across POS, payroll, and back-office systems — plus spreadsheets, PDFs, SFTPs, and direct database connections. If your data lives somewhere, Oscar can almost certainly read it, and connecting a new source is our work, not yours.`,
+    a: `Oscar already integrates with ${stats.integrationsLabel} providers across POS, payroll, and back-office systems — plus spreadsheets, PDFs, SFTPs, and direct database connections. If your data lives somewhere, Oscar can almost certainly read it, and connecting a new source is our work, not yours.`,
   },
   {
     q: "Do I need to hire analysts or add staff to use Oscar?",
@@ -396,67 +413,99 @@ export const useCases: UseCase[] = [
 ];
 
 /* ================================================================
-   Daily briefs — "Same data. Same morning. Three different actions."
-   Illustrative messages in the same simulated 36-store universe as the
-   hero and the product film; the section carries its own disclaimer.
+   Daily briefs — one overnight run, read at three altitudes.
+
+   All three views below describe the SAME finding: locations running
+   overtime because a shift-lead slot has been open since Thursday. The
+   point of the section is that seniority changes what you are shown,
+   not how much you are shown — the owner gets a pattern across the
+   network, the district leader gets the two locations that are hers,
+   the general manager gets three names on his own schedule.
+
+   Deliberately the same locations (#12, #16) the product film calls out
+   for soft sales: understaffed → slower service → fewer guests served.
+   One simulated universe, one story, told at three zoom levels.
    ================================================================ */
 
-export type DailyBrief = {
+export type BriefView = {
+  id: string;
   role: string;
   name: string;
   initials: string;
+  /** Plain-English description of how much of the network this person sees. */
+  scope: string;
   time: string;
+  /** The headline number at THIS altitude — same fact, different unit. */
   metric: string;
   metricLabel: string;
-  actions: [string, string];
+  lines: [string, string];
   callout: string;
   tone: "warn" | "info" | "ok";
+  /** Indexes into the 36-location grid this person has visibility of. */
+  scopeNodes: number[];
+  /** The subset currently alerting — always a subset of scopeNodes. */
+  flagged: number[];
 };
 
-export const dailyBriefs: DailyBrief[] = [
+const ALL_36 = Array.from({ length: 36 }, (_, i) => i);
+
+export const briefViews: BriefView[] = [
   {
+    id: "owner",
+    role: "Owner",
+    name: "Priya",
+    initials: "PN",
+    scope: "All 36 locations · 4 districts",
+    time: "6:58 AM",
+    metric: "7 locations",
+    metricLabel: "are running overtime above plan this week",
+    lines: [
+      "Five of the seven sit in one district — which makes this a management conversation, not a hiring one.",
+      "All five started the week the new afternoon shift pattern went live.",
+    ],
+    callout: "Report → one conversation, not seven",
+    tone: "info",
+    scopeNodes: ALL_36,
+    flagged: [11, 15, 16, 21, 22, 27, 30],
+  },
+  {
+    id: "district",
     role: "District Leader",
     name: "Dana",
-    initials: "DL",
-    time: "7:02 AM",
-    metric: "3.1%",
-    metricLabel: "void rate at Loc #14 — norm is 0.8%",
-    actions: [
-      "Review last night's void log with the closing manager",
-      "Compare against the district's 90-day pattern — attached",
+    initials: "DR",
+    scope: "Her district · 6 locations",
+    time: "6:58 AM",
+    metric: "2 of your 6",
+    metricLabel: "are running overtime above plan",
+    lines: [
+      "#12 and #16 — both on the afternoon shift, both short a lead since Thursday, and both now soft on sales.",
+      "The other four districts are clean this week, so this one is yours.",
     ],
     callout: "Alert → needs a decision today",
     tone: "warn",
+    scopeNodes: [10, 11, 15, 16, 21, 22],
+    flagged: [11, 15],
   },
   {
+    id: "gm",
     role: "General Manager",
     name: "Marcus",
-    initials: "GM",
-    time: "7:02 AM",
-    metric: "86%",
-    metricLabel: "prep completion before open — 2 items short",
-    actions: [
-      "Move one prep shift 30 minutes earlier on Fri–Sat",
-      "Confirm the walk-in thermometer swap logged last night",
+    initials: "MT",
+    scope: "Location #12 only",
+    time: "6:58 AM",
+    metric: "3 people",
+    metricLabel: "will cross into overtime before Friday",
+    lines: [
+      "Two of them are covering the shift-lead slot that has been open since Thursday.",
+      "Moving one prep shift 30 minutes earlier clears it without cutting anyone's hours.",
     ],
     callout: "Action plan → two steps, 15 minutes",
     tone: "ok",
-  },
-  {
-    role: "Owner",
-    name: "Priya",
-    initials: "OW",
-    time: "7:02 AM",
-    metric: "27.9%",
-    metricLabel: "labor, trailing 7 days — trending to plan",
-    actions: [
-      "Weekly labor summary, all regions — attached",
-      "Two stores flagged for next week's schedule review",
-    ],
-    callout: "Report → no action needed, trending well",
-    tone: "info",
+    scopeNodes: [11],
+    flagged: [11],
   },
 ];
+
 
 /* ================================================================
    Integrations
